@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
     }
 
     @Override
-    public void onDaVinciHelperReady() {
+    public void onDaVinciReady() {
        if (daVinci.hasValidToken()) {
            daVinci.startFlowPolicy("4969f5866ef278d744f845c659b105d0", this);
        }

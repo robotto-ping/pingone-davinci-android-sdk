@@ -6,7 +6,7 @@ import com.pingidentity.emeasa.davinci.api.FlowResponse;
 
 public interface DaVinciFlowUI {
 
-    void onDaVinciHelperReady();
+    void onDaVinciReady();
     void onDaVinciError(Throwable t);
     void onFlowComplete(FlowResponse flowResponse);
     void onFlowContinue(ContinueResponse continueResponse);
