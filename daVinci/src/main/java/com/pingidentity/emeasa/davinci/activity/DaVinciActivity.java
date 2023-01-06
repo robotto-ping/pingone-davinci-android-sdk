@@ -8,6 +8,7 @@ import android.os.Bundle;
 import com.pingidentity.emeasa.davinci.DaVinciFlowActionHandler;
 import com.pingidentity.emeasa.davinci.PingOneDaVinci;
 import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
+import com.pingidentity.emeasa.davinci.actionhandler.FIDOAssertionActionHandler;
 import com.pingidentity.emeasa.davinci.actionhandler.FIDOAttestationActionHandler;
 
 import java.util.HashMap;
@@ -53,6 +54,15 @@ public class DaVinciActivity extends AppCompatActivity {
                 FIDOAttestationActionHandler handler = (FIDOAttestationActionHandler) handlers.get("FIDOAttestationActionHandler");
                 handler.handleAttestationResponse(resultCode, data);
                 handlers.remove("FIDOAttestationActionHandler");
+            } else {
+                pingOneDaVinci.handleAsyncException(new PingOneDaVinciException("No Handler Registered"));
+            }
+
+        } else if (ASSERTION_REQUEST == requestCode) {
+            if (handlers.containsKey("FIDOAssertionActionHandler")) {
+                FIDOAssertionActionHandler handler = (FIDOAssertionActionHandler) handlers.get("FIDOAssertionActionHandler");
+                handler.handleAssertionResponse(resultCode, data);
+                handlers.remove("FIDOAssertionActionHandler");
             } else {
                 pingOneDaVinci.handleAsyncException(new PingOneDaVinciException("No Handler Registered"));
             }

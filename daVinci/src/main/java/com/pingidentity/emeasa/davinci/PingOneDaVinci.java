@@ -85,6 +85,7 @@ public class PingOneDaVinci {
         this.valueMappers.put("location", "com.pingidentity.emeasa.davinci.mapper.LocationMapper");
         this.flowActionHandlers.put("submitForm", "com.pingidentity.emeasa.davinci.actionhandler.FormSubmitActionHandler");
         this.flowActionHandlers.put("platformAttestation", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAttestationActionHandler");
+        this.flowActionHandlers.put("platformAssertion", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAssertionActionHandler");
     }
 
     public void initialise(String apiKey) {
