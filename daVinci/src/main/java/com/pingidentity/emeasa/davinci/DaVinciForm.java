@@ -59,6 +59,8 @@ public class DaVinciForm {
     private int textStyle = 0;
 
 
+
+
     public DaVinciForm(PingOneDaVinci daVinci, ViewGroup formLayout, Activity activity) {
         this.formLayout = formLayout;
         this.activity = activity;
@@ -77,6 +79,7 @@ public class DaVinciForm {
                 formLayout.addView(tView);
             }
             // now the fields
+            boolean focused = false;
             for (Field f : continueResponse.getFields()) {
                 if (f.getType().equalsIgnoreCase(Field.TEXT)) {
                     // This is a text field - render a label
@@ -99,6 +102,10 @@ public class DaVinciForm {
                         editView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
                     }
                     formLayout.addView(editView);
+                    if (!focused) {
+                        editView.requestFocus();
+                        focused = true;
+                    }
                 }
 
 
@@ -109,12 +116,12 @@ public class DaVinciForm {
                 Button button = new Button(activity, null, 0,buttonStyle);
                 button.setText(a.getDescriptionText());
                 button.setOnClickListener(new ButtonClickListener(a.getActionValue()));
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                /*LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                 );
                 params.setMargins(5, 10, 5, 0);
-                button.setLayoutParams(params);
+                button.setLayoutParams(params); */
                 formLayout.addView(button);
             }
 
