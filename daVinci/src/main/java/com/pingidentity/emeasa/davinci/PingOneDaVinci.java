@@ -86,6 +86,7 @@ public class PingOneDaVinci {
         this.flowActionHandlers.put("submitForm", "com.pingidentity.emeasa.davinci.actionhandler.FormSubmitActionHandler");
         this.flowActionHandlers.put("platformAttestation", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAttestationActionHandler");
         this.flowActionHandlers.put("platformAssertion", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAssertionActionHandler");
+        this.flowActionHandlers.put("riskSignals", "com.pingidentity.emeasa.davinci.actionhandler.PingOneRiskSignalsActionHandler");
     }
 
     public void initialise(String apiKey) {
@@ -166,6 +167,10 @@ public class PingOneDaVinci {
 
     public void startFlowPolicy(String policyID, Context context) {
         startFlowPolicy(policyID, null, context);
+    }
+
+    public String getEnvironmentId() {
+        return this.companyID;
     }
 
 

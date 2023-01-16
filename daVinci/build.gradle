@@ -40,4 +40,5 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.1'
     implementation 'com.google.android.gms:play-services-location:21.0.0'
     implementation 'com.google.android.gms:play-services-fido:18.1.0'
+    implementation "com.pingidentity.signals:android-sdk:5.0.2"
 }
