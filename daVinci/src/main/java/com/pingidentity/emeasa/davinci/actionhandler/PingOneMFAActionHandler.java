@@ -54,12 +54,12 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
     }
 
     private void pairDevice(Action action) {
-        Log.d("PingOneMFAActionHandler", "Starting  pairDevice");
+
         String pingOnePairingKey = (String) action.getInputData().get("pingOnePairingKey");
         PingOne.pair(context, pingOnePairingKey, new PingOne.PingOneSDKPairingCallback() {
             @Override
             public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
-                Log.d("PingOneMFAActionHandler", "Starting pairDevice::onComplete 1");
+
             }
 
             @Override
@@ -96,14 +96,13 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
 
     private void checkFCMRegistrationToken() {
-        Log.d("PingOneMFAActionHandler", "Starting  checkFCMRegistrationToken");
+
         try {
             FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
                 Log.d("PingOneMFAActionHandler", "Got FCM Token " + task.getResult());
                 PingOne.setDeviceToken(context, task.getResult(), NotificationProvider.FCM, new PingOne.PingOneSDKCallback() {
                     @Override
                     public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
-                        Log.d("PingOneMFAActionHandler", "Starting  setDeviceToken::onComplete");
                         performAction();
                     }
                 });
