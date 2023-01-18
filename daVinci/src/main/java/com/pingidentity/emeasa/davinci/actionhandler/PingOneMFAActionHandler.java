@@ -93,6 +93,7 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
     private void checkFCMRegistrationToken() {
         Log.d("PingOneMFAActionHandler", "Starting  checkFCMRegistrationToken");
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            Log.d("PingOneMFAActionHandler", "Got FCM Token " + task.getResult() );
             PingOne.setDeviceToken(context, task.getResult(), NotificationProvider.FCM, new PingOne.PingOneSDKCallback() {
                 @Override
                 public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
