@@ -87,6 +87,8 @@ public class PingOneDaVinci {
         this.flowActionHandlers.put("platformAttestation", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAttestationActionHandler");
         this.flowActionHandlers.put("platformAssertion", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAssertionActionHandler");
         this.flowActionHandlers.put("riskSignals", "com.pingidentity.emeasa.davinci.actionhandler.PingOneRiskSignalsActionHandler");
+        this.flowActionHandlers.put("devicePayload", "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
+        this.flowActionHandlers.put("pairDevice", "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
     }
 
     public void initialise(String apiKey) {

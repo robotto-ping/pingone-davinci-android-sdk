@@ -41,4 +41,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.0.0'
     implementation 'com.google.android.gms:play-services-fido:18.1.0'
     implementation "com.pingidentity.signals:android-sdk:5.0.2"
+    implementation 'com.pingidentity.pingonemfa:android-sdk:1.8.1'
 }
