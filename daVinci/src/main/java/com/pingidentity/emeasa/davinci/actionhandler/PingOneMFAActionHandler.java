@@ -58,8 +58,13 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
         String pingOnePairingKey = (String) action.getInputData().get("pingOnePairingKey");
         PingOne.pair(context, pingOnePairingKey, new PingOne.PingOneSDKPairingCallback() {
             @Override
+            public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
+                Log.d("PingOneMFAActionHandler", "Starting pairDevice::onComplete 1");
+            }
+
+            @Override
             public void onComplete(@Nullable PairingInfo pairingInfo, @Nullable PingOneSDKError pingOneSDKError) {
-                Log.d("PingOneMFAActionHandler", "Starting onComplete");
+                Log.d("PingOneMFAActionHandler", "Starting pairDevice::onComplete 3");
                 JSONObject parameters = new JSONObject();
                 try {
                     parameters.put(ACTION_VALUE, action.getActionValue());
@@ -70,12 +75,6 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
                 }
             }
 
-            @Override
-            public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
-              /*  Log.d("PingOneMFAActionHandler", "Starting  onComplete " + pingOneSDKError.getMessage());
-
-                pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(pingOneSDKError.getMessage())); */
-            }
         });
 
 
@@ -103,7 +102,7 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
                 PingOne.setDeviceToken(context, task.getResult(), NotificationProvider.FCM, new PingOne.PingOneSDKCallback() {
                     @Override
                     public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
-                        Log.d("PingOneMFAActionHandler", "Starting  onComplete");
+                        Log.d("PingOneMFAActionHandler", "Starting  setDeviceToken::onComplete");
                         performAction();
                     }
                 });
