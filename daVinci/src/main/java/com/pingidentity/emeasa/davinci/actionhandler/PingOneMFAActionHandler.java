@@ -109,7 +109,7 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
             });
         } catch (Exception e) {
             e.printStackTrace();
-            Log.d("PingOneMFAActionHandler", "There's a problem withe the Firebase token");
+            Log.d("PingOneMFAActionHandler", "There's a problem with the Firebase token");
         }
 
 
