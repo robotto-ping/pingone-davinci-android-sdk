@@ -59,7 +59,7 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
         PingOne.pair(context, pingOnePairingKey, new PingOne.PingOneSDKPairingCallback() {
             @Override
             public void onComplete(@Nullable PairingInfo pairingInfo, @Nullable PingOneSDKError pingOneSDKError) {
-                Log.d("PingOneMFAActionHandler", "Starting  onComplete");
+                Log.d("PingOneMFAActionHandler", "Starting onComplete");
                 JSONObject parameters = new JSONObject();
                 try {
                     parameters.put(ACTION_VALUE, action.getActionValue());
@@ -72,9 +72,9 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
             @Override
             public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
-                Log.d("PingOneMFAActionHandler", "Starting  onComplete " + pingOneSDKError.getMessage());
+              /*  Log.d("PingOneMFAActionHandler", "Starting  onComplete " + pingOneSDKError.getMessage());
 
-                pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(pingOneSDKError.getMessage()));
+                pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(pingOneSDKError.getMessage())); */
             }
         });
 
