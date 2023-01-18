@@ -65,17 +65,18 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
             @Override
             public void onComplete(@Nullable PairingInfo pairingInfo, @Nullable PingOneSDKError pingOneSDKError) {
                 Log.d("PingOneMFAActionHandler", "Starting pairDevice::onComplete 3");
-                JSONObject parameters = new JSONObject();
-                try {
-                    parameters.put(ACTION_VALUE, action.getActionValue());
-                    pingOneDaVinci.continueFlow(parameters, context);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(e.getMessage()));
-                }
+
             }
 
         });
+        JSONObject parameters = new JSONObject();
+        try {
+            parameters.put(ACTION_VALUE, action.getActionValue());
+            pingOneDaVinci.continueFlow(parameters, context);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(e.getMessage()));
+        }
 
 
     }
