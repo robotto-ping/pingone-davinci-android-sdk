@@ -3,6 +3,7 @@ package com.pingidentity.emeasa.davinci.actionhandler;
 
 
 import android.content.Context;
+import android.util.Log;
 
 
 import androidx.annotation.Nullable;
@@ -90,14 +91,17 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
 
     private void checkFCMRegistrationToken() {
+        Log.d("PingOneMFAActionHandler", "Starting  checkFCMRegistrationToken");
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
             PingOne.setDeviceToken(context, task.getResult(), NotificationProvider.FCM, new PingOne.PingOneSDKCallback() {
                 @Override
                 public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
+                    Log.d("PingOneMFAActionHandler", "Starting  onComplete");
                     performAction();
                 }
             });
         });
+
 
     }
 }
