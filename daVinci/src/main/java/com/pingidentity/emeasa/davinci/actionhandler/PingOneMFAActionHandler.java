@@ -42,6 +42,7 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
     }
 
     private void performAction() {
+        Log.d("PingOneMFAActionHandler", "Starting  performAction");
         for (Action a: continueResponse.getActions()) {
             if (a.getType().equalsIgnoreCase("devicePayload")) {
                 sendDevicePayload(a);
@@ -53,10 +54,12 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
     }
 
     private void pairDevice(Action action) {
+        Log.d("PingOneMFAActionHandler", "Starting  pairDevice");
         String pingOnePairingKey = (String) action.getInputData().get("pingOnePairingKey");
         PingOne.pair(context, pingOnePairingKey, new PingOne.PingOneSDKPairingCallback() {
             @Override
             public void onComplete(@Nullable PairingInfo pairingInfo, @Nullable PingOneSDKError pingOneSDKError) {
+                Log.d("PingOneMFAActionHandler", "Starting  onComplete");
                 JSONObject parameters = new JSONObject();
                 try {
                     parameters.put(ACTION_VALUE, action.getActionValue());
@@ -69,6 +72,8 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
             @Override
             public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
+                Log.d("PingOneMFAActionHandler", "Starting  onComplete " + pingOneSDKError.getMessage());
+
                 pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(pingOneSDKError.getMessage()));
             }
         });
