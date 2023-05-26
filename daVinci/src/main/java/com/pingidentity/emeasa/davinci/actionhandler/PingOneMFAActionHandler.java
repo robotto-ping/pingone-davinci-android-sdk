@@ -2,6 +2,7 @@ package com.pingidentity.emeasa.davinci.actionhandler;
 
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
@@ -9,6 +10,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.gson.JsonObject;
 import com.pingidentity.emeasa.davinci.DaVinciFlowActionHandler;
 import com.pingidentity.emeasa.davinci.PingOneDaVinci;
 import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
@@ -24,11 +26,17 @@ import org.json.JSONObject;
 
 public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
-    private static final String ACTION_VALUE = "actionValue";
+    protected static final String ACTION_VALUE = "actionValue";
 
-    private PingOneDaVinci pingOneDaVinci;
-    private Context context;
-    private ContinueResponse continueResponse;
+    public static final String GET_PAYLOAD_ACTION = "devicePayload";
+    public static final String GET_INFO_ACTION = "getInfo";
+    public static final String PAIR_DEVICE_ACTION = "pairDevice";
+
+    protected static final String PING_ONE_PAIRING_KEY = "pingOnePairingKey" ;
+
+    protected PingOneDaVinci pingOneDaVinci;
+    protected Context context;
+    protected ContinueResponse continueResponse;
 
 
     @Override
@@ -41,21 +49,25 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
     }
 
-    private void performAction() {
-        Log.d("PingOneMFAActionHandler", "Starting  performAction");
+    protected void performAction() {
+
         for (Action a: continueResponse.getActions()) {
-            if (a.getType().equalsIgnoreCase("devicePayload")) {
+            if (a.getType().equalsIgnoreCase(GET_PAYLOAD_ACTION)) {
                 sendDevicePayload(a);
             }
-            else if (a.getType().equalsIgnoreCase("pairDevice")) {
+            else if (a.getType().equalsIgnoreCase(PAIR_DEVICE_ACTION)) {
                 pairDevice(a);
+            }else if (a.getType().equalsIgnoreCase(GET_INFO_ACTION)) {
+                getInfo(a);
             }
         }
     }
 
+
+
     private void pairDevice(Action action) {
 
-        String pingOnePairingKey = (String) action.getInputData().get("pingOnePairingKey");
+        String pingOnePairingKey = (String) action.getInputData().get(PING_ONE_PAIRING_KEY);
         PingOne.pair(context, pingOnePairingKey, new PingOne.PingOneSDKPairingCallback() {
             @Override
             public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
@@ -64,19 +76,26 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
             @Override
             public void onComplete(@Nullable PairingInfo pairingInfo, @Nullable PingOneSDKError pingOneSDKError) {
-                Log.d("PingOneMFAActionHandler", "Starting pairDevice::onComplete 3");
 
+                if (pingOneSDKError != null) {
+
+                    pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(pingOneSDKError.getMessage()));
+                } else {
+                    ((Activity) context).runOnUiThread(() -> {
+                        JSONObject parameters = new JSONObject();
+                        try {
+                            parameters.put(ACTION_VALUE, action.getActionValue());
+                            pingOneDaVinci.continueFlow(parameters, context);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(e.getMessage()));
+                        }
+                    });
+                }
             }
 
         });
-        JSONObject parameters = new JSONObject();
-        try {
-            parameters.put(ACTION_VALUE, action.getActionValue());
-            pingOneDaVinci.continueFlow(parameters, context);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(e.getMessage()));
-        }
+
 
 
     }
@@ -94,12 +113,29 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
         }
     }
 
+    private void getInfo(Action action) {
+        PingOne.getInfo(context, (jsonObject, pingOneSDKError) -> ((Activity)context).runOnUiThread(() -> {
+            try {
+                JSONObject parameters = new JSONObject();
+                try {
+                    parameters.put(ACTION_VALUE, action.getActionValue());
+                    parameters.put(action.getParameterName(), jsonObject);
+                    pingOneDaVinci.continueFlow(parameters, context);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(e.getMessage()));
+                }
+            } catch (Exception e) {
+                pingOneDaVinci.handleAsyncException(e);
+            }
+        }));
+    }
 
     private void checkFCMRegistrationToken() {
 
         try {
             FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-                Log.d("PingOneMFAActionHandler", "Got FCM Token " + task.getResult());
+
                 PingOne.setDeviceToken(context, task.getResult(), NotificationProvider.FCM, new PingOne.PingOneSDKCallback() {
                     @Override
                     public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
@@ -109,7 +145,7 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
             });
         } catch (Exception e) {
             e.printStackTrace();
-            Log.d("PingOneMFAActionHandler", "There's a problem with the Firebase token");
+            pingOneDaVinci.handleAsyncException(e);
         }
 
 

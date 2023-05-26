@@ -29,7 +29,7 @@ public class MainActivity3 extends AppCompatActivity implements DaVinciFlowUI {
     @Override
     public void onDaVinciReady() {
         if (daVinci.hasValidToken()) {
-            daVinci.startFlowPolicy("4969f5866ef278d744f845c659b105d0", this);
+            daVinci.startFlowPolicy("e5e968a4590fb2fd070c5228d5aafb66", this);
         }
     }
 

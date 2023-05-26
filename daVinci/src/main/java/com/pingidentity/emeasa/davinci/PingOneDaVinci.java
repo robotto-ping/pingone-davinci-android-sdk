@@ -22,6 +22,8 @@ import org.json.JSONObject;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler;
+import com.pingidentity.emeasa.davinci.actionhandler.TransactionSigningActionHandler;
 import com.pingidentity.emeasa.davinci.api.Action;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 import com.pingidentity.emeasa.davinci.api.Field;
@@ -51,7 +53,9 @@ public class PingOneDaVinci {
     private static final String API_KEY_HEADER_NAME = "X-SK-API-KEY";
     private static final String VALUE_PREFIX = "$";
     private static final String NEXT_URL_PATTERN = "%s%s/%s/davinci/connections/%s/capabilities/%s";
+    private static final String JWKS_URL_PATTERN  = "https://auth.pingone.%s/%s/davinci/.well-known/jwks.json";
 
+    private static final String ISSUER_PATTERN  = "https://auth.pingone.%s/%s/davinci";
 
     private DaVinciFlowUI flowUI;
     private String companyID;
@@ -87,8 +91,12 @@ public class PingOneDaVinci {
         this.flowActionHandlers.put("platformAttestation", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAttestationActionHandler");
         this.flowActionHandlers.put("platformAssertion", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAssertionActionHandler");
         this.flowActionHandlers.put("riskSignals", "com.pingidentity.emeasa.davinci.actionhandler.PingOneRiskSignalsActionHandler");
-        this.flowActionHandlers.put("devicePayload", "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
-        this.flowActionHandlers.put("pairDevice", "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
+        this.flowActionHandlers.put(PingOneMFAActionHandler.GET_PAYLOAD_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
+        this.flowActionHandlers.put(PingOneMFAActionHandler.PAIR_DEVICE_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
+        this.flowActionHandlers.put(PingOneMFAActionHandler.GET_INFO_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
+        this.flowActionHandlers.put(TransactionSigningActionHandler.GET_JWT_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.TransactionSigningActionHandler");
+        this.flowActionHandlers.put(TransactionSigningActionHandler.GET_SIGNATURE_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.TransactionSigningActionHandler");
+
     }
 
     public void initialise(String apiKey) {
@@ -98,6 +106,14 @@ public class PingOneDaVinci {
     public void initialiseWithToken(String flowInitiationToken) {
         this.flowInitiationToken = flowInitiationToken;
         flowUI.onDaVinciReady();
+    }
+
+    public String getJWKSLocation() {
+        return String.format(JWKS_URL_PATTERN, this.location, this.companyID);
+    }
+
+    public String getIssuer() {
+        return String.format(ISSUER_PATTERN, this.location, this.companyID);
     }
 
     public boolean hasValidToken() {
