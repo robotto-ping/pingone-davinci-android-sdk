@@ -63,6 +63,7 @@ public class DaVinciForm {
 
     public DaVinciForm(PingOneDaVinci daVinci, ViewGroup formLayout, Activity activity) {
         this.formLayout = formLayout;
+        formLayout.removeAllViews();
         this.activity = activity;
         this.daVinci =daVinci;
 
