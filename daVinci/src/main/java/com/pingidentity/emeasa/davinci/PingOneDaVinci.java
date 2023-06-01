@@ -85,6 +85,7 @@ public class PingOneDaVinci {
         this.responsePayloadHandlers.put("createSession", "com.pingidentity.emeasa.davinci.payloadhandler.DaVinciTokenPayloadHandler");
         this.responsePayloadHandlers.put("createSessionWithCustomClaims", "com.pingidentity.emeasa.davinci.payloadhandler.DaVinciTokenPayloadHandler");
         this.responsePayloadHandlers.put("createSuccessResponse", "com.pingidentity.emeasa.davinci.payloadhandler.DaVinciJSONResponsePayloadHandler");
+        this.responsePayloadHandlers.put("returnSuccessResponseWidget", "com.pingidentity.emeasa.davinci.payloadhandler.DaVinciTokenPayloadHandler");
         this.valueMappers.put("phoneNumber", "com.pingidentity.emeasa.davinci.mapper.PhoneNumberMapper");
         this.valueMappers.put("location", "com.pingidentity.emeasa.davinci.mapper.LocationMapper");
         this.flowActionHandlers.put("submitForm", "com.pingidentity.emeasa.davinci.actionhandler.FormSubmitActionHandler");
