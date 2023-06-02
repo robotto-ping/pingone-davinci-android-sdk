@@ -86,6 +86,7 @@ public class DaVinciForm {
                     // This is a text field - render a label
                     TextView tView = new TextView(activity, null, 0, textStyle);
                     tView.setText(f.getValue());
+                    tView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
                     formLayout.addView(tView);
                 } else if (f.getType().equalsIgnoreCase(Field.HIDDEN)) {
                     // This is a hidden field that we need to pass straight through
