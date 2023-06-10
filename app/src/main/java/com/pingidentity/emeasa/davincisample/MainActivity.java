@@ -1,113 +1,78 @@
 package com.pingidentity.emeasa.davincisample;
 
-import static com.pingidentity.emeasa.davinci.PingOneDaVinci.EU;
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.API_KEY;
+import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.COMPANY_ID;
+import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.MAIN_POLICY_ID;
+import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.REGION;
 
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.view.View;
-
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
 import com.pingidentity.emeasa.davinci.DaVinciFlowUI;
+import com.pingidentity.emeasa.davinci.DaVinciForm;
 import com.pingidentity.emeasa.davinci.PingOneDaVinci;
+import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 import com.pingidentity.emeasa.davinci.api.FlowResponse;
-import com.pingidentity.emeasa.davincisample.databinding.ActivityMainBinding;
 
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
 
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
     private PingOneDaVinci daVinci;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        setSupportActionBar(binding.toolbar);
-
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                 daVinci = new PingOneDaVinci(MainActivity.this, "16902052-7d1e-4cea-9ccd-6333bfccb544", EU);
-                daVinci.initialise("bbbef0051834a64f043f97dcba81f7f73b244fe83e1b65ea9160fb1c7d58d5d66dd329eac2a69724c75758c7ebe96cb940bd438b49d84c1b4dd7eba9f8cfa8bbe857e7d8c79e81efd3bb53eddcba4ef14f12e5b2f06b16f280136ea3a63377043638ca1f3668b911c309f887af40f84ebd5b14fe81a38a2c7b86d9444126e0d0");
-            }
-        });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
+        setContentView(R.layout.activity_main);
+        daVinci = new PingOneDaVinci(this, COMPANY_ID, REGION);
+        daVinci.initialise(API_KEY);
     }
 
     @Override
     public void onDaVinciReady() {
-       if (daVinci.hasValidToken()) {
-           daVinci.startFlowPolicy("4969f5866ef278d744f845c659b105d0", this);
-       }
+        if (daVinci.hasValidToken()) {
+            daVinci.startFlowPolicy(MAIN_POLICY_ID, this);
+        }
     }
 
     @Override
     public void onDaVinciError(Throwable t) {
-
+        Toast.makeText(this, "ERROR::" + t.getMessage(), Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onFlowComplete(FlowResponse flowResponse) {
         System.out.println(flowResponse);
+        findViewById(R.id.davContainer).setVisibility(GONE);
+        findViewById(R.id.tokenLabel).setVisibility(VISIBLE);
+        String id = flowResponse.getIdToken();
+        ( (TextView)findViewById(R.id.tokenLabel)).setText("Token:: " + id);
         Intent i = new Intent(this, MainActivity.class);
         i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(i);
-
     }
 
     @Override
     public void onFlowContinue(ContinueResponse continueResponse) {
-
+        ViewGroup layout = (ViewGroup) findViewById(R.id.davContainer);
+        DaVinciForm form = new DaVinciForm(daVinci, layout, this);
+        form.setButtonStyle(R.style.MyButton);
+        form.setEditViewStyle(R.style.Theme_DaVinciSDKTestApp_EditText);
+        form.setHeaderTextStyle(R.style.Theme_DaVinciSDKTestApp_HeaderText);
+        form.setTextStyle(R.style.Theme_DaVinciSDKTestApp_Text);
+        try {
+            form.buildView(continueResponse);
+        } catch (PingOneDaVinciException e) {
+            e.printStackTrace();
+        }
     }
 
 
