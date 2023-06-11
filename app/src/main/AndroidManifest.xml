@@ -14,15 +14,17 @@
         android:theme="@style/Theme.DaVinciSample"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
-            android:exported="false"
+            android:name="com.pingidentity.emeasa.davincisample.MainActivity"
+            android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.DaVinciSample.NoActionBar"></activity>
-        <activity
-            android:name="com.pingidentity.emeasa.davinci.activity.DaVinciActivity"
-            android:exported="false"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.DaVinciSample.NoActionBar" />
+            android:theme="@style/Theme.DaVinciSample.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>

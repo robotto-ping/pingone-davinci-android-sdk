@@ -1,4 +1,4 @@
-package com.pingidentity.emeasa.davincisdktestapp;
+package com.pingidentity.emeasa.davincisample;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
@@ -14,7 +14,6 @@ import com.pingidentity.emeasa.davinci.PingOneDaVinci;
 import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 import com.pingidentity.emeasa.davinci.api.FlowResponse;
-import com.pingidentity.emeasa.davincisdktestapp.R;
 
 import android.view.ViewGroup;
 import android.widget.TextView;

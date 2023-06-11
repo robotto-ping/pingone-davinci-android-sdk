@@ -1,4 +1,4 @@
-package com.pingidentity.emeasa.davincisdktestapp;
+package com.pingidentity.emeasa.davincisample;
 
 import android.content.Context;
 
