@@ -2,13 +2,14 @@ package com.pingidentity.emeasa.davinci.actionhandler;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
-import static com.pingidentity.emeasa.davinci.activity.DaVinciActivity.ASSERTION_REQUEST;
+
 
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.util.Base64;
+
+import androidx.activity.result.ActivityResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.fido.Fido;
@@ -16,16 +17,15 @@ import com.google.android.gms.fido.common.Transport;
 import com.google.android.gms.fido.fido2.Fido2ApiClient;
 import com.google.android.gms.fido.fido2.api.common.AttestationConveyancePreference;
 import com.google.android.gms.fido.fido2.api.common.AuthenticatorAssertionResponse;
-import com.google.android.gms.fido.fido2.api.common.AuthenticatorAttestationResponse;
 import com.google.android.gms.fido.fido2.api.common.AuthenticatorErrorResponse;
 import com.google.android.gms.fido.fido2.api.common.PublicKeyCredential;
 import com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialDescriptor;
 import com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialRequestOptions;
 import com.google.android.gms.tasks.Task;
+import com.pingidentity.emeasa.davinci.ActivityResultHanlder;
 import com.pingidentity.emeasa.davinci.DaVinciFlowActionHandler;
 import com.pingidentity.emeasa.davinci.PingOneDaVinci;
 import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
-import com.pingidentity.emeasa.davinci.activity.DaVinciActivity;
 import com.pingidentity.emeasa.davinci.api.Action;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 
@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler {
+public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler, ActivityResultHanlder {
 
     private static final String ACTION_VALUE = "actionValue";
     private Fido2ApiClient fido2ApiClient;
@@ -50,8 +50,7 @@ public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler {
         this.pingOneDaVinci = pingOneDaVinci;
         this.context = context;
         this.continueResponse = continueResponse;
-        Intent intent = new Intent(context, DaVinciActivity.class);
-        context.startActivity(intent);
+        pingOneDaVinci.setActivityResultHandler(this);
         fido2ApiClient = Fido.getFido2ApiClient(context);
         Task<Boolean> t = fido2ApiClient.isUserVerifyingPlatformAuthenticatorAvailable();
         t.addOnSuccessListener(
@@ -78,16 +77,7 @@ public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler {
                                     Task<PendingIntent> t2 = fido2ApiClient.getSignPendingIntent(opts);
                                     t2.addOnSuccessListener(
                                             p -> {
-
-                                                try {
-                                                    DaVinciActivity act = DaVinciActivity.getInstance();
-                                                    act.setDaVinci(pingOneDaVinci);
-                                                    act.registerHandlerInstance("FIDOAssertionActionHandler", FIDOAssertionActionHandler.this);
-                                                    act.startIntentSenderForResult(p.getIntentSender(), ASSERTION_REQUEST, null, 0, 0, 0);
-                                                } catch (IntentSender.SendIntentException e) {
-                                                    e.printStackTrace();
-                                                }
-
+                                                pingOneDaVinci.launchPendingIntent(p);
                                             });
                                 } catch (Exception e) {
                                     pingOneDaVinci.handleAsyncException(e);
@@ -186,5 +176,8 @@ public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler {
 
         }
     }
-
+    @Override
+    public void processActvitiyResult(ActivityResult result) {
+        handleAssertionResponse(result.getResultCode(),  result.getData());
+    }
 }

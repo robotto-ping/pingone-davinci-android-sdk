@@ -1,4 +1,4 @@
-package com.pingidentity.emeasa.davincisample;
+package com.pingidentity.emeasa.davincisdktestapp;
 
 import org.junit.Test;
 

@@ -8,8 +8,20 @@ import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.NO_HANDLER
 import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.NO_MAPPER_FOR_TEMPLATE;
 import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.TOO_MANY_ACTIONS;
 
-import android.content.Context;
 
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+
+import androidx.activity.ComponentActivity;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.annotation.NonNull;
 
 import org.jose4j.jwt.JwtClaims;
@@ -20,6 +32,8 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.json.JSONObject;
 
+import com.google.android.gms.fido.Fido;
+import com.google.android.gms.fido.fido2.api.common.AuthenticatorErrorResponse;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler;
@@ -34,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
@@ -58,6 +73,21 @@ public class PingOneDaVinci {
     private static final String ISSUER_PATTERN  = "https://auth.pingone.%s/%s/davinci";
 
     private DaVinciFlowUI flowUI;
+
+    private ActivityResultLauncher<IntentSenderRequest> resultLauncher;
+
+    public void setActivityResultHandler(ActivityResultHanlder activityResultHandler) {
+        this.activityResultHandler = activityResultHandler;
+    }
+
+    private ActivityResultHanlder activityResultHandler;
+
+    public ComponentActivity getHostActivity() {
+        return hostActivity;
+    }
+
+    private ComponentActivity hostActivity;
+
     private String companyID;
     private String location;
 
@@ -77,10 +107,24 @@ public class PingOneDaVinci {
     private Map<String, String> flowActionHandlers = new HashMap<>();
     private Map<String, String> valueMappers = new HashMap<>();
 
-    public PingOneDaVinci(DaVinciFlowUI flowUI, String companyID, String location) {
+    public PingOneDaVinci(DaVinciFlowUI flowUI, String companyID, String location, ComponentActivity hostActivity) {
+ //  public PingOneDaVinci(DaVinciFlowUI flowUI, String companyID, String location) {
         this.flowUI = flowUI;
         this.companyID = companyID;
         this.location = location;
+       this.hostActivity = hostActivity;
+
+        resultLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (activityResultHandler != null) {
+                    activityResultHandler.processActvitiyResult(result);
+                }
+
+            }
+        });
+
+
         this.responsePayloadHandlers.put("customHTMLTemplate", "com.pingidentity.emeasa.davinci.payloadhandler.CustomHTMLTemplateResponsePayloadHandler");
         this.responsePayloadHandlers.put("createSession", "com.pingidentity.emeasa.davinci.payloadhandler.DaVinciTokenPayloadHandler");
         this.responsePayloadHandlers.put("createSessionWithCustomClaims", "com.pingidentity.emeasa.davinci.payloadhandler.DaVinciTokenPayloadHandler");
@@ -331,6 +375,11 @@ public class PingOneDaVinci {
         } catch (Exception e) {
             flowUI.onDaVinciError(new PingOneDaVinciException(e.getMessage()));
         }
+    }
+
+    public void launchPendingIntent(PendingIntent p) {
+        IntentSenderRequest req = new IntentSenderRequest.Builder(p).build();
+        resultLauncher.launch(req);
     }
 
 

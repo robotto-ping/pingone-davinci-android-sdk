@@ -1,11 +1,7 @@
-package com.pingidentity.emeasa.davincisample;
+package com.pingidentity.emeasa.davincisdktestapp;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.API_KEY;
-import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.COMPANY_ID;
-import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.MAIN_POLICY_ID;
-import static com.pingidentity.emeasa.davincisample.DaVinciEnvironment.REGION;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,6 +14,7 @@ import com.pingidentity.emeasa.davinci.PingOneDaVinci;
 import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 import com.pingidentity.emeasa.davinci.api.FlowResponse;
+import com.pingidentity.emeasa.davincisdktestapp.R;
 
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -32,14 +29,14 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        daVinci = new PingOneDaVinci(this, COMPANY_ID, REGION);
-        daVinci.initialise(API_KEY);
+        daVinci = new PingOneDaVinci(this, DaVinciEnvironment.COMPANY_ID, DaVinciEnvironment.REGION, this) ;
+        daVinci.initialise(DaVinciEnvironment.API_KEY);
     }
 
     @Override
     public void onDaVinciReady() {
         if (daVinci.hasValidToken()) {
-            daVinci.startFlowPolicy(MAIN_POLICY_ID, this);
+            daVinci.startFlowPolicy(DaVinciEnvironment.MAIN_POLICY_ID, this);
         }
     }
 
