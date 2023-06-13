@@ -2,6 +2,7 @@ package com.pingidentity.emeasa.davinci;
 
 import android.app.Activity;
 
+import android.graphics.Color;
 import android.text.InputType;
 
 import android.view.View;
@@ -9,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.pingidentity.emeasa.davinci.api.Action;
@@ -31,29 +34,7 @@ public class DaVinciForm {
     private int buttonStyle = 0;
     private int editViewStyle = 0;
 
-    public int getEditViewStyle() {
-        return editViewStyle;
-    }
 
-    public void setEditViewStyle(int editViewStyle) {
-        this.editViewStyle = editViewStyle;
-    }
-
-    public int getHeaderTextStyle() {
-        return headerTextStyle;
-    }
-
-    public void setHeaderTextStyle(int headerTextStyle) {
-        this.headerTextStyle = headerTextStyle;
-    }
-
-    public int getTextStyle() {
-        return textStyle;
-    }
-
-    public void setTextStyle(int textStyle) {
-        this.textStyle = textStyle;
-    }
 
     private int headerTextStyle = 0;
     private int textStyle = 0;
@@ -61,12 +42,24 @@ public class DaVinciForm {
 
 
 
+    private int titleContainerStyle = 0;
+    private int fieldContainerStyle = 0;
+    private int buttonContainerStyle = 0;
+
+    public static int TITLE = 0;
+    public static int FIELDS = 1;
+    public static int BUTTONS = 2;
+
+
+
+
+
     public DaVinciForm(PingOneDaVinci daVinci, ViewGroup formLayout, Activity activity) {
+
         this.formLayout = formLayout;
         formLayout.removeAllViews();
         this.activity = activity;
-        this.daVinci =daVinci;
-
+        this.daVinci = daVinci;
     }
 
 
@@ -74,60 +67,88 @@ public class DaVinciForm {
         // this is where we build the actual form
         try {
             //start with the title
+
             if (continueResponse.getTitle() != null) {
-                TextView tView = new TextView(activity, null, 0, headerTextStyle);
+                LinearLayout titleLayout = new LinearLayout(activity, null,0 ,titleContainerStyle);
+                TextView tView = new TextView(activity, null, 0,headerTextStyle);
                 tView.setText(continueResponse.getTitle());
-                formLayout.addView(tView);
+                titleLayout.addView(tView);
+                formLayout.addView(titleLayout);
             }
             // now the fields
-            boolean focused = false;
-            for (Field f : continueResponse.getFields()) {
-                if (f.getType().equalsIgnoreCase(Field.TEXT)) {
-                    // This is a text field - render a label
-                    TextView tView = new TextView(activity, null, 0, textStyle);
-                    tView.setText(f.getValue());
-                    tView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    formLayout.addView(tView);
-                } else if (f.getType().equalsIgnoreCase(Field.HIDDEN)) {
-                    // This is a hidden field that we need to pass straight through
-                    flowPayload.put(f.getParameterName(), f.getValue());
-                }else if (f.getType().equalsIgnoreCase(Field.INPUT)) {
-                    // This is an input field - render an EditText
-                    EditText editView = new EditText(activity, null, 0, editViewStyle);
+            if (!continueResponse.getFields().isEmpty()) {
+                boolean focused = false;
+              //  RelativeLayout fieldLayout = new RelativeLayout(activity, null,0, fieldContainerStyle);
+                LinearLayout fieldLayout = new LinearLayout(activity, null, 0 , fieldContainerStyle);
+               // int previousViewID = 0;
+                for (Field f : continueResponse.getFields()) {
+                    if (f.getType().equalsIgnoreCase(Field.TEXT)) {
+                        // This is a text field - render a label
+                        TextView tView = new TextView(activity, null,0, textStyle);
+                        tView.setText(f.getValue());
+                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                                RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                    /*    lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        if (previousViewID > 0) {
+                            lp.addRule(RelativeLayout.BELOW, previousViewID);
 
-                    editView.setId(++fieldID);
-                    if (f.getValue() !=null && !f.getValue().isEmpty()) {
-                        editView.setText(f.getValue());
+                        } else {
+                            lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                        } */
+                        tView.setLayoutParams(lp);
+                        tView.setId(++fieldID);
+                   //     previousViewID = fieldID;
+                        fieldLayout.addView(tView);
+                    } else if (f.getType().equalsIgnoreCase(Field.HIDDEN)) {
+                        // This is a hidden field that we need to pass straight through
+                        flowPayload.put(f.getParameterName(), f.getValue());
+                    } else if (f.getType().equalsIgnoreCase(Field.INPUT)) {
+                        // This is an input field - render an EditText
+                        EditText editView = new EditText(activity, null, 0,editViewStyle);
+                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                                RelativeLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                       /* lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                        if (previousViewID > 0) {
+                            lp.addRule(RelativeLayout.BELOW, previousViewID);
+
+                        } else {
+                            lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                        } */
+                        editView.setLayoutParams(lp);
+                        editView.setId(++fieldID);
+                       // previousViewID = fieldID;
+                        if (f.getValue() != null && !f.getValue().isEmpty()) {
+                            editView.setText(f.getValue());
+                        }
+
+                        inputFieldIdentifiers.put(f.getParameterName(), fieldID);
+                        if (f.isMasked()) {
+                            editView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                        }
+                        fieldLayout.addView(editView);
+                        if (!focused) {
+                            editView.requestFocus();
+                            focused = true;
+                        }
                     }
-                    inputFieldIdentifiers.put(f.getParameterName(), fieldID);
-                    if (f.isMasked()) {
-                        editView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                    }
-                    formLayout.addView(editView);
-                    if (!focused) {
-                        editView.requestFocus();
-                        focused = true;
-                    }
+
+
                 }
-
-
+                formLayout.addView(fieldLayout);
             }
-            // finally the button actions
-            for (Action a: continueResponse.getFormSubmitActions()) {
+            if (!continueResponse.getFields().isEmpty()) {
+                // finally the button actions
+                LinearLayout buttonLayout = new LinearLayout(activity, null,  0,buttonContainerStyle);
+                for (Action a : continueResponse.getFormSubmitActions()) {
 
-                Button button = new Button(activity, null, 0,buttonStyle);
-                button.setText(a.getDescriptionText());
-                button.setOnClickListener(new ButtonClickListener(a.getActionValue()));
-                /*LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                );
-                params.setMargins(5, 10, 5, 0);
-                button.setLayoutParams(params); */
-                formLayout.addView(button);
+                    Button button = new Button(activity, null,0, buttonStyle);
+                    button.setText(a.getDescriptionText());
+                    button.setOnClickListener(new ButtonClickListener(a.getActionValue()));
+                    buttonLayout.addView(button);
+                }
+                formLayout.addView(buttonLayout);
             }
-
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new PingOneDaVinciException(e.getMessage());
         }
     }
@@ -165,4 +186,56 @@ public class DaVinciForm {
 
         }
     }
+
+
+
+    public int getEditViewStyle() {
+        return editViewStyle;
+    }
+
+    public void setEditViewStyle(int editViewStyle) {
+        this.editViewStyle = editViewStyle;
+    }
+
+    public int getHeaderTextStyle() {
+        return headerTextStyle;
+    }
+
+    public void setHeaderTextStyle(int headerTextStyle) {
+        this.headerTextStyle = headerTextStyle;
+    }
+
+    public int getTextStyle() {
+        return textStyle;
+    }
+
+    public void setTextStyle(int textStyle) {
+        this.textStyle = textStyle;
+    }
+
+    public int getButtonContainerStyle() {
+        return buttonContainerStyle;
+    }
+
+    public void setButtonContainerStyle(int buttonContainerStyle) {
+        this.buttonContainerStyle = buttonContainerStyle;
+    }
+
+    public int getTitleContainerStyle() {
+        return titleContainerStyle;
+    }
+
+    public void setTitleContainerStyle(int titleContainerStyle) {
+        this.titleContainerStyle = titleContainerStyle;
+    }
+
+    public int getFieldContainerStyle() {
+        return fieldContainerStyle;
+    }
+
+    public void setFieldContainerStyle(int fieldContainerStyle) {
+        this.fieldContainerStyle = fieldContainerStyle;
+    }
+
 }
+

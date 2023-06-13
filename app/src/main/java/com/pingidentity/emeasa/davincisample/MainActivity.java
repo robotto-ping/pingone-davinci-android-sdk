@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+
 import com.pingidentity.emeasa.davinci.DaVinciFlowUI;
 import com.pingidentity.emeasa.davinci.DaVinciForm;
 import com.pingidentity.emeasa.davinci.PingOneDaVinci;
@@ -60,7 +61,11 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
     public void onFlowContinue(ContinueResponse continueResponse) {
         ViewGroup layout = (ViewGroup) findViewById(R.id.davContainer);
         DaVinciForm form = new DaVinciForm(daVinci, layout, this);
-        form.setButtonStyle(R.style.MyButton);
+
+        form.setTitleContainerStyle(R.style.Theme_DaVinciSDKTestApp_TitleContainer);
+        form.setFieldContainerStyle(R.style.Theme_DaVinciSDKTestApp_FieldContainer);
+        form.setButtonStyle(R.style.Theme_DaVinciSDKTestApp_Button);
+        form.setButtonContainerStyle(R.style.Theme_DaVinciSDKTestApp_ButtonContainer);
         form.setEditViewStyle(R.style.Theme_DaVinciSDKTestApp_EditText);
         form.setHeaderTextStyle(R.style.Theme_DaVinciSDKTestApp_HeaderText);
         form.setTextStyle(R.style.Theme_DaVinciSDKTestApp_Text);

@@ -6,4 +6,8 @@ import com.pingidentity.emeasa.davinci.api.Field;
 
 public interface DaVinciValueMapper {
     void performSubstitution(Field f, Context context, PingOneDaVinci pingOneDaVinci) throws PingOneDaVinciException ;
+
+    void retryMapping();
+
+    void failMapping();
 }

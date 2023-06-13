@@ -2,8 +2,9 @@ package com.pingidentity.emeasa.davinci.actionhandler;
 
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.biometric.BiometricPrompt;
+import androidx.fragment.app.FragmentActivity;
 
 import android.app.Activity;
 import android.security.keystore.KeyGenParameterSpec;
@@ -252,7 +253,7 @@ public class TransactionSigningActionHandler extends PingOneMFAActionHandler imp
                 .setDescription("Please verify your identity")
                 .setNegativeButtonText("Cancel")
                 .build();
-        BiometricPrompt biometricPrompt = new BiometricPrompt((AppCompatActivity)context,
+        BiometricPrompt biometricPrompt = new BiometricPrompt((FragmentActivity) context,
                 executor, new BiometricPrompt.AuthenticationCallback() {
             @Override
             public void onAuthenticationError(int errorCode,
@@ -345,7 +346,7 @@ public class TransactionSigningActionHandler extends PingOneMFAActionHandler imp
                 .setDescription(promptString)
                 .setNegativeButtonText("Cancel")
                 .build();
-        BiometricPrompt biometricPrompt = new BiometricPrompt((AppCompatActivity)context,
+        BiometricPrompt biometricPrompt = new BiometricPrompt((FragmentActivity)context,
                 executor, new BiometricPrompt.AuthenticationCallback() {
             @Override
             public void onAuthenticationError(int errorCode,

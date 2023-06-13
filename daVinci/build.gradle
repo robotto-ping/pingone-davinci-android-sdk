@@ -27,11 +27,11 @@ android {
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.7.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     implementation platform('com.google.firebase:firebase-bom:30.3.2')
     implementation 'com.google.firebase:firebase-core'
     implementation 'com.google.firebase:firebase-messaging'
@@ -42,6 +42,6 @@ dependencies {
     implementation 'com.google.android.gms:play-services-fido:18.1.0'
     implementation "com.pingidentity.signals:android-sdk:5.0.2"
     implementation 'com.pingidentity.pingonemfa:android-sdk:1.8.1'
-    implementation 'androidx.biometric:biometric:1.0.1'
+    implementation 'androidx.biometric:biometric:1.1.0'
     implementation 'com.google.code.gson:gson:2.7'
 }

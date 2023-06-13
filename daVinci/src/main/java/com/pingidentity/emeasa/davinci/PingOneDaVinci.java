@@ -9,6 +9,7 @@ import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.NO_MAPPER_
 import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.TOO_MANY_ACTIONS;
 
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -75,6 +76,8 @@ public class PingOneDaVinci {
     private DaVinciFlowUI flowUI;
 
     private ActivityResultLauncher<IntentSenderRequest> resultLauncher;
+    private ActivityResultLauncher<String[]> permisionLauncher;
+    private Map<String, DaVinciValueMapper> mapperCallbacks = new HashMap<>();
 
     public void setActivityResultHandler(ActivityResultHanlder activityResultHandler) {
         this.activityResultHandler = activityResultHandler;
@@ -119,6 +122,26 @@ public class PingOneDaVinci {
             public void onActivityResult(ActivityResult result) {
                 if (activityResultHandler != null) {
                     activityResultHandler.processActvitiyResult(result);
+                }
+
+            }
+        });
+
+        permisionLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+            @Override
+            public void onActivityResult(Map<String, Boolean> result) {
+                for(String permission: result.keySet()) {
+                    if (mapperCallbacks.containsKey(permission)) {
+                        DaVinciValueMapper mapper = mapperCallbacks.get(permission);
+                        mapperCallbacks.remove(permission);
+                        if (result.get(permission)) {
+                            mapper.retryMapping();
+                        } else {
+                            mapper.failMapping();
+                        }
+
+                    }
+
                 }
 
             }
@@ -382,6 +405,11 @@ public class PingOneDaVinci {
         resultLauncher.launch(req);
     }
 
+    public void requestMapperPermissions(String permission, DaVinciValueMapper mapperInstance) {
+
+        mapperCallbacks.put(permission, mapperInstance);
+        permisionLauncher.launch(new String[]{permission});
+    }
 
     private class DaVinciAPIResponseHandler extends JsonHttpResponseHandler {
 

@@ -11,13 +11,13 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.DaVinciSample"
+        android:theme="@style/Theme.DaVinciSDKTestApp"
         tools:targetApi="31">
         <activity
             android:name="com.pingidentity.emeasa.davincisample.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.DaVinciSample.NoActionBar">
+            android:theme="@style/Theme.DaVinciSDKTestApp.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
