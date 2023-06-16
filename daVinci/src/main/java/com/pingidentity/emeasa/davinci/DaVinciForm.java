@@ -35,23 +35,13 @@ public class DaVinciForm {
     private int editViewStyle = 0;
 
 
-
     private int headerTextStyle = 0;
     private int textStyle = 0;
-
-
 
 
     private int titleContainerStyle = 0;
     private int fieldContainerStyle = 0;
     private int buttonContainerStyle = 0;
-
-    public static int TITLE = 0;
-    public static int FIELDS = 1;
-    public static int BUTTONS = 2;
-
-
-
 
 
     public DaVinciForm(PingOneDaVinci daVinci, ViewGroup formLayout, Activity activity) {
@@ -69,8 +59,8 @@ public class DaVinciForm {
             //start with the title
 
             if (continueResponse.getTitle() != null) {
-                LinearLayout titleLayout = new LinearLayout(activity, null,0 ,titleContainerStyle);
-                TextView tView = new TextView(activity, null, 0,headerTextStyle);
+                LinearLayout titleLayout = new LinearLayout(activity, null, 0, titleContainerStyle);
+                TextView tView = new TextView(activity, null, 0, headerTextStyle);
                 tView.setText(continueResponse.getTitle());
                 titleLayout.addView(tView);
                 formLayout.addView(titleLayout);
@@ -78,45 +68,28 @@ public class DaVinciForm {
             // now the fields
             if (!continueResponse.getFields().isEmpty()) {
                 boolean focused = false;
-              //  RelativeLayout fieldLayout = new RelativeLayout(activity, null,0, fieldContainerStyle);
-                LinearLayout fieldLayout = new LinearLayout(activity, null, 0 , fieldContainerStyle);
-               // int previousViewID = 0;
+                LinearLayout fieldLayout = new LinearLayout(activity, null, 0, fieldContainerStyle);
                 for (Field f : continueResponse.getFields()) {
                     if (f.getType().equalsIgnoreCase(Field.TEXT)) {
                         // This is a text field - render a label
-                        TextView tView = new TextView(activity, null,0, textStyle);
+                        TextView tView = new TextView(activity, null, 0, textStyle);
                         tView.setText(f.getValue());
                         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                                 RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                    /*    lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        if (previousViewID > 0) {
-                            lp.addRule(RelativeLayout.BELOW, previousViewID);
-
-                        } else {
-                            lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                        } */
                         tView.setLayoutParams(lp);
                         tView.setId(++fieldID);
-                   //     previousViewID = fieldID;
+
                         fieldLayout.addView(tView);
                     } else if (f.getType().equalsIgnoreCase(Field.HIDDEN)) {
                         // This is a hidden field that we need to pass straight through
                         flowPayload.put(f.getParameterName(), f.getValue());
                     } else if (f.getType().equalsIgnoreCase(Field.INPUT)) {
                         // This is an input field - render an EditText
-                        EditText editView = new EditText(activity, null, 0,editViewStyle);
+                        EditText editView = new EditText(activity, null, 0, editViewStyle);
                         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                                 RelativeLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                       /* lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-                        if (previousViewID > 0) {
-                            lp.addRule(RelativeLayout.BELOW, previousViewID);
-
-                        } else {
-                            lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-                        } */
                         editView.setLayoutParams(lp);
                         editView.setId(++fieldID);
-                       // previousViewID = fieldID;
                         if (f.getValue() != null && !f.getValue().isEmpty()) {
                             editView.setText(f.getValue());
                         }
@@ -138,10 +111,9 @@ public class DaVinciForm {
             }
             if (!continueResponse.getFields().isEmpty()) {
                 // finally the button actions
-                LinearLayout buttonLayout = new LinearLayout(activity, null,  0,buttonContainerStyle);
+                LinearLayout buttonLayout = new LinearLayout(activity, null, 0, buttonContainerStyle);
                 for (Action a : continueResponse.getFormSubmitActions()) {
-
-                    Button button = new Button(activity, null,0, buttonStyle);
+                    Button button = new Button(activity, null, 0, buttonStyle);
                     button.setText(a.getDescriptionText());
                     button.setOnClickListener(new ButtonClickListener(a.getActionValue()));
                     buttonLayout.addView(button);
@@ -186,7 +158,6 @@ public class DaVinciForm {
 
         }
     }
-
 
 
     public int getEditViewStyle() {

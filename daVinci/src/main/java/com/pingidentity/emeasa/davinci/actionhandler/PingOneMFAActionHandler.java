@@ -16,6 +16,7 @@ import com.pingidentity.emeasa.davinci.PingOneDaVinci;
 import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
 import com.pingidentity.emeasa.davinci.api.Action;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
+import com.pingidentity.pingidsdkv2.NotificationObject;
 import com.pingidentity.pingidsdkv2.PingOne;
 import com.pingidentity.pingidsdkv2.PingOneSDKError;
 import com.pingidentity.pingidsdkv2.types.NotificationProvider;
@@ -26,6 +27,8 @@ import org.json.JSONObject;
 
 public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
 
+    public static final String ACCEPT_PUSH_ACTION = "acceptPush" ;
+    public static final String REJECT_PUSH_ACTION = "rejectPush" ;
     protected static final String ACTION_VALUE = "actionValue";
 
     public static final String GET_PAYLOAD_ACTION = "devicePayload";
@@ -59,10 +62,57 @@ public class PingOneMFAActionHandler implements DaVinciFlowActionHandler {
                 pairDevice(a);
             }else if (a.getType().equalsIgnoreCase(GET_INFO_ACTION)) {
                 getInfo(a);
+            }else if (a.getType().equalsIgnoreCase(ACCEPT_PUSH_ACTION)) {
+                handlePush(a, true);
+            }else if (a.getType().equalsIgnoreCase(REJECT_PUSH_ACTION)) {
+                handlePush(a, false);
             }
         }
     }
 
+    private void handlePush(Action action, boolean pushAccept) {
+        NotificationObject no = pingOneDaVinci.getNotificationObject();
+        if (no != null) {
+            if (pushAccept) {
+                no.approve(context, "app",new PingOne.PingOneSDKCallback() {
+
+                    @Override
+                    public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
+                        JSONObject parameters = new JSONObject();
+
+                            ((Activity) context).runOnUiThread(() -> {
+                                try {
+                                    parameters.put(ACTION_VALUE, action.getActionValue());
+                                    pingOneDaVinci.continueFlow(parameters, context);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                    pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(e.getMessage()));
+                                }
+                            });
+
+                    }
+                } );
+            } else {
+                no.deny(context,new PingOne.PingOneSDKCallback() {
+
+                    @Override
+                    public void onComplete(@Nullable PingOneSDKError pingOneSDKError) {
+                        JSONObject parameters = new JSONObject();
+                        ((Activity) context).runOnUiThread(() -> {
+                            try {
+                                parameters.put(ACTION_VALUE, action.getActionValue());
+                                pingOneDaVinci.continueFlow(parameters, context);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                                pingOneDaVinci.handleAsyncException(new PingOneDaVinciException(e.getMessage()));
+                            }
+                        });
+                    }
+                } );
+            }
+        }
+
+    }
 
 
     private void pairDevice(Action action) {

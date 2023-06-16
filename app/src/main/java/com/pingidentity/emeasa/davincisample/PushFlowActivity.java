@@ -1,16 +1,11 @@
 package com.pingidentity.emeasa.davincisample;
 
-import static android.view.View.GONE;
-import static android.view.View.VISIBLE;
-
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Bundle;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.pingidentity.emeasa.davinci.DaVinciFlowUI;
 import com.pingidentity.emeasa.davinci.DaVinciForm;
 import com.pingidentity.emeasa.davinci.PingOneDaVinci;
@@ -18,34 +13,26 @@ import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 import com.pingidentity.emeasa.davinci.api.FlowResponse;
 
-import android.util.Log;
-import android.view.ViewGroup;
-import android.widget.TextView;
-import android.widget.Toast;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
+public class PushFlowActivity extends AppCompatActivity implements DaVinciFlowUI {
 
     private PingOneDaVinci daVinci;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-            String token = task.getResult();
-            Log.d("Foo","FCM Token = " + task.getResult());
-        });
-
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_push_flow);
         daVinci = new PingOneDaVinci(this, DaVinciEnvironment.COMPANY_ID, DaVinciEnvironment.REGION, this) ;
-        daVinci.requestNotificationPermission();
         daVinci.initialise(DaVinciEnvironment.API_KEY);
+
     }
 
     @Override
     public void onDaVinciReady() {
         if (daVinci.hasValidToken()) {
-            daVinci.startFlowPolicy(DaVinciEnvironment.MAIN_POLICY_ID, this);
+            daVinci.startFlowPolicyFromIntent( this.getIntent(), "ed1b8c7d-5bce-4a56-8cb4-5549c0db119b",this);
         }
     }
 
@@ -56,14 +43,7 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
 
     @Override
     public void onFlowComplete(FlowResponse flowResponse) {
-        System.out.println(flowResponse);
-        findViewById(R.id.davContainer).setVisibility(GONE);
-        findViewById(R.id.tokenLabel).setVisibility(VISIBLE);
-        String id = flowResponse.getIdToken();
-        ( (TextView)findViewById(R.id.tokenLabel)).setText("Token:: " + id);
-        Intent i = new Intent(this, MainActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        startActivity(i);
+        finishAffinity();
     }
 
     @Override
@@ -84,6 +64,4 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
             e.printStackTrace();
         }
     }
-
-
 }

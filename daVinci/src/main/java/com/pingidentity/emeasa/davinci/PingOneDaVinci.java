@@ -31,6 +31,7 @@ import org.jose4j.jwt.NumericDate;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.JwtContext;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.google.android.gms.fido.Fido;
@@ -44,6 +45,7 @@ import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 import com.pingidentity.emeasa.davinci.api.Field;
 import com.pingidentity.emeasa.davinci.api.FlowResponse;
 import com.pingidentity.emeasa.davinci.payloadhandler.DaVinciJSONResponsePayloadHandler;
+import com.pingidentity.pingidsdkv2.NotificationObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,6 +80,12 @@ public class PingOneDaVinci {
     private ActivityResultLauncher<IntentSenderRequest> resultLauncher;
     private ActivityResultLauncher<String[]> permisionLauncher;
     private Map<String, DaVinciValueMapper> mapperCallbacks = new HashMap<>();
+
+    public NotificationObject getNotificationObject() {
+        return notificationObject;
+    }
+
+    private NotificationObject notificationObject;
 
     public void setActivityResultHandler(ActivityResultHanlder activityResultHandler) {
         this.activityResultHandler = activityResultHandler;
@@ -162,9 +170,15 @@ public class PingOneDaVinci {
         this.flowActionHandlers.put(PingOneMFAActionHandler.GET_PAYLOAD_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
         this.flowActionHandlers.put(PingOneMFAActionHandler.PAIR_DEVICE_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
         this.flowActionHandlers.put(PingOneMFAActionHandler.GET_INFO_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
+        this.flowActionHandlers.put(PingOneMFAActionHandler.ACCEPT_PUSH_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
+        this.flowActionHandlers.put(PingOneMFAActionHandler.REJECT_PUSH_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
         this.flowActionHandlers.put(TransactionSigningActionHandler.GET_JWT_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.TransactionSigningActionHandler");
         this.flowActionHandlers.put(TransactionSigningActionHandler.GET_SIGNATURE_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.TransactionSigningActionHandler");
 
+    }
+
+    public void requestNotificationPermission() {
+        permisionLauncher.launch(new String[]{"android.permission.POST_NOTIFICATIONS"});
     }
 
     public void initialise(String apiKey) {
@@ -409,6 +423,31 @@ public class PingOneDaVinci {
 
         mapperCallbacks.put(permission, mapperInstance);
         permisionLauncher.launch(new String[]{permission});
+    }
+
+    public void startFlowPolicyFromIntent( Intent intent, String userID, Context context) {
+        if (intent.hasExtra("PingOneNotification")) {
+            this.notificationObject = (NotificationObject) intent.getExtras().get("PingOneNotification");
+            String cc = notificationObject.getClientContext();
+            try {
+                JSONObject clientContext = new JSONObject(cc);
+                String challenge = clientContext.getString("challenge");
+                String policyID = clientContext.getString("policyID");
+
+                    JSONObject input = new JSONObject();
+
+                    try {
+                        input.put("userID",userID);
+                        input.put("challenge", challenge);
+                    } catch (JSONException e) {
+
+                    }
+                    startFlowPolicy(policyID,input, context);
+
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private class DaVinciAPIResponseHandler extends JsonHttpResponseHandler {
