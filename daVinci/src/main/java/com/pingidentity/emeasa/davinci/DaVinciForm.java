@@ -2,6 +2,7 @@ package com.pingidentity.emeasa.davinci;
 
 import android.app.Activity;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.text.InputType;
 
@@ -45,10 +46,8 @@ public class DaVinciForm {
     private int buttonContainerStyle = 0;
 
 
-
     private int spinnerStyle = 0;
     private int spinnerContainerStyle = 0;
-
 
 
     public DaVinciForm(PingOneDaVinci daVinci, ViewGroup formLayout, Activity activity) {
@@ -140,14 +139,18 @@ public class DaVinciForm {
         }
     }
 
-    public int getButtonStyle() {
-        return buttonStyle;
+    public static void submitFlowContinueResponse(Map<String, Object> fieldValues, String actionValue, PingOneDaVinci pingOneDaVinci, Context context) {
+        try {
+            JSONObject flowPayload = new JSONObject();
+            flowPayload.put("actionValue", actionValue);
+            for (String key : fieldValues.keySet()) {
+                flowPayload.put(key, fieldValues.get(key));
+            }
+            pingOneDaVinci.continueFlow(flowPayload, context);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
-    public void setButtonStyle(int buttonStyle) {
-        this.buttonStyle = buttonStyle;
-    }
-
 
     private class ButtonClickListener implements View.OnClickListener {
 
@@ -237,6 +240,14 @@ public class DaVinciForm {
 
     public void setSpinnerContainerStyle(int spinnerContainerStyle) {
         this.spinnerContainerStyle = spinnerContainerStyle;
+    }
+
+    public int getButtonStyle() {
+        return buttonStyle;
+    }
+
+    public void setButtonStyle(int buttonStyle) {
+        this.buttonStyle = buttonStyle;
     }
 
 }
