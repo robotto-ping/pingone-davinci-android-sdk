@@ -6,6 +6,9 @@ public class Action {
 
 
     public static final String SUBMIT_FORM = "submitForm";
+    public static final String AUTO_SUBMIT_INTERVAL = "autoSubmitInterval" ;
+    public static final String MAX_RETRIES =  "maxRetries";
+    public static final String POLL_RETRIES_EXCEEDED = "retiresExceeded" ;
 
     public String getDescriptionText() {
         return descriptionText;

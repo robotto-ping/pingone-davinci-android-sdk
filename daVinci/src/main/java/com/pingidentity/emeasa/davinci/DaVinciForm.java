@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -42,6 +43,12 @@ public class DaVinciForm {
     private int titleContainerStyle = 0;
     private int fieldContainerStyle = 0;
     private int buttonContainerStyle = 0;
+
+
+
+    private int spinnerStyle = 0;
+    private int spinnerContainerStyle = 0;
+
 
 
     public DaVinciForm(PingOneDaVinci daVinci, ViewGroup formLayout, Activity activity) {
@@ -109,14 +116,22 @@ public class DaVinciForm {
                 }
                 formLayout.addView(fieldLayout);
             }
-            if (!continueResponse.getFields().isEmpty()) {
+            if (!continueResponse.getActions().isEmpty()) {
                 // finally the button actions
+                if (continueResponse.hasAutoSubmitAction()) {
+                    LinearLayout spinnerLayout = new LinearLayout(activity, null, 0, spinnerContainerStyle);
+                    ProgressBar spinner = new ProgressBar(activity, null, 0, spinnerStyle);
+                    spinnerLayout.addView(spinner);
+                    formLayout.addView(spinnerLayout);
+                }
                 LinearLayout buttonLayout = new LinearLayout(activity, null, 0, buttonContainerStyle);
                 for (Action a : continueResponse.getFormSubmitActions()) {
-                    Button button = new Button(activity, null, 0, buttonStyle);
-                    button.setText(a.getDescriptionText());
-                    button.setOnClickListener(new ButtonClickListener(a.getActionValue()));
-                    buttonLayout.addView(button);
+                    if (!continueResponse.hasAutoSubmitAction() || !continueResponse.getAutoSubmitAction().equals(a)) {
+                        Button button = new Button(activity, null, 0, buttonStyle);
+                        button.setText(a.getDescriptionText());
+                        button.setOnClickListener(new ButtonClickListener(a.getActionValue()));
+                        buttonLayout.addView(button);
+                    }
                 }
                 formLayout.addView(buttonLayout);
             }
@@ -206,6 +221,22 @@ public class DaVinciForm {
 
     public void setFieldContainerStyle(int fieldContainerStyle) {
         this.fieldContainerStyle = fieldContainerStyle;
+    }
+
+    public int getSpinnerStyle() {
+        return spinnerStyle;
+    }
+
+    public void setSpinnerStyle(int spinnerStyle) {
+        this.spinnerStyle = spinnerStyle;
+    }
+
+    public int getSpinnerContainerStyle() {
+        return spinnerContainerStyle;
+    }
+
+    public void setSpinnerContainerStyle(int spinnerContainerStyle) {
+        this.spinnerContainerStyle = spinnerContainerStyle;
     }
 
 }

@@ -78,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
         form.setEditViewStyle(R.style.Theme_DaVinciSDKTestApp_EditText);
         form.setHeaderTextStyle(R.style.Theme_DaVinciSDKTestApp_HeaderText);
         form.setTextStyle(R.style.Theme_DaVinciSDKTestApp_Text);
+        form.setSpinnerContainerStyle(R.style.Theme_DaVinciSDKTestApp_FieldContainer);
+       form.setSpinnerStyle(R.style.Theme_DaVinciSDKTestApp_Spinner);
         try {
             form.buildView(continueResponse);
         } catch (PingOneDaVinciException e) {

@@ -27,7 +27,7 @@ public class CustomHTMLTemplateResponsePayloadHandler  implements DaVinciRespons
             this.nextPayload = new NextPayload(id, onClickObject.getString("eventName"), onClickObject );
 
         } catch (Exception e) {
-            throw new PingOneDaVinciException("Cannot initialise Response Payload Hanlder ::" + e.getMessage());
+            throw new PingOneDaVinciException("Cannot initialise Response Payload Handler ::" + e.getMessage());
         }
     }
 

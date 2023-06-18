@@ -10,6 +10,7 @@ import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.TOO_MANY_A
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -48,6 +49,7 @@ import com.pingidentity.emeasa.davinci.payloadhandler.DaVinciJSONResponsePayload
 import com.pingidentity.pingidsdkv2.NotificationObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +73,9 @@ public class PingOneDaVinci {
     private static final String API_KEY_HEADER_NAME = "X-SK-API-KEY";
     private static final String VALUE_PREFIX = "$";
     private static final String NEXT_URL_PATTERN = "%s%s/%s/davinci/connections/%s/capabilities/%s";
-    private static final String JWKS_URL_PATTERN  = "https://auth.pingone.%s/%s/davinci/.well-known/jwks.json";
+    private static final String JWKS_URL_PATTERN = "https://auth.pingone.%s/%s/davinci/.well-known/jwks.json";
 
-    private static final String ISSUER_PATTERN  = "https://auth.pingone.%s/%s/davinci";
+    private static final String ISSUER_PATTERN = "https://auth.pingone.%s/%s/davinci";
 
     private DaVinciFlowUI flowUI;
 
@@ -86,6 +88,8 @@ public class PingOneDaVinci {
     }
 
     private NotificationObject notificationObject;
+
+    private int pollRetries = -1;
 
     public void setActivityResultHandler(ActivityResultHanlder activityResultHandler) {
         this.activityResultHandler = activityResultHandler;
@@ -119,11 +123,11 @@ public class PingOneDaVinci {
     private Map<String, String> valueMappers = new HashMap<>();
 
     public PingOneDaVinci(DaVinciFlowUI flowUI, String companyID, String location, ComponentActivity hostActivity) {
- //  public PingOneDaVinci(DaVinciFlowUI flowUI, String companyID, String location) {
+        //  public PingOneDaVinci(DaVinciFlowUI flowUI, String companyID, String location) {
         this.flowUI = flowUI;
         this.companyID = companyID;
         this.location = location;
-       this.hostActivity = hostActivity;
+        this.hostActivity = hostActivity;
 
         resultLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
@@ -138,7 +142,7 @@ public class PingOneDaVinci {
         permisionLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
             @Override
             public void onActivityResult(Map<String, Boolean> result) {
-                for(String permission: result.keySet()) {
+                for (String permission : result.keySet()) {
                     if (mapperCallbacks.containsKey(permission)) {
                         DaVinciValueMapper mapper = mapperCallbacks.get(permission);
                         mapperCallbacks.remove(permission);
@@ -362,6 +366,17 @@ public class PingOneDaVinci {
         return false;
     }
 
+    private Action getAutoSubmitAction(ContinueResponse continueResponse) {
+        for (Action a : continueResponse.getActions()) {
+            if (a.getType().equalsIgnoreCase(Action.SUBMIT_FORM)) {
+                if (a.getInputData() != null && a.getInputData().get(Action.AUTO_SUBMIT_INTERVAL) != null) {
+                    return a;
+                }
+            }
+        }
+        return null;
+    }
+
     private void processFlowAction(@NonNull ContinueResponse continueResponse, Context context) {
         if (continueResponse.getActions().size() == 1) {
             String actionType = continueResponse.getActions().get(0).getType();
@@ -425,7 +440,7 @@ public class PingOneDaVinci {
         permisionLauncher.launch(new String[]{permission});
     }
 
-    public void startFlowPolicyFromIntent( Intent intent, String userID, Context context) {
+    public void startFlowPolicyFromIntent(Intent intent, String userID, Context context) {
         if (intent.hasExtra("PingOneNotification")) {
             this.notificationObject = (NotificationObject) intent.getExtras().get("PingOneNotification");
             String cc = notificationObject.getClientContext();
@@ -434,20 +449,52 @@ public class PingOneDaVinci {
                 String challenge = clientContext.getString("challenge");
                 String policyID = clientContext.getString("policyID");
 
-                    JSONObject input = new JSONObject();
+                JSONObject input = new JSONObject();
 
-                    try {
-                        input.put("userID",userID);
-                        input.put("challenge", challenge);
-                    } catch (JSONException e) {
+                try {
+                    input.put("userID", userID);
+                    input.put("challenge", challenge);
+                } catch (JSONException e) {
 
-                    }
-                    startFlowPolicy(policyID,input, context);
+                }
+                startFlowPolicy(policyID, input, context);
 
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void startAutoSubmitTimer(Action autoSubmitAction, ContinueResponse continueResponse, Context context) {
+        try {
+            if (pollRetries == -1)  {
+                pollRetries = continueResponse.getPollRetries();
+            } else {
+                pollRetries--;
+            }
+
+                ContinueResponse newContinueResponse = (ContinueResponse) continueResponse.clone();
+                newContinueResponse.setActions(Collections.singletonList(autoSubmitAction));
+                if (pollRetries == 0) {
+                    autoSubmitAction.setActionValue(Action.POLL_RETRIES_EXCEEDED);
+                }
+            newContinueResponse.setActions(Collections.singletonList(autoSubmitAction));
+                int autoSubmitInterval = continueResponse.getAutoSubmitDelay();
+                try {
+                    Thread.sleep(autoSubmitInterval);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+            ((Activity) context).runOnUiThread(() -> {
+                processFlowAction(newContinueResponse, context);
+            });
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
     }
 
     private class DaVinciAPIResponseHandler extends JsonHttpResponseHandler {
@@ -473,6 +520,12 @@ public class PingOneDaVinci {
                     } else {
                         flowContext.setNextPayload(responseHandler.getNextPayload());
                         continueResponse = responseHandler.getContinueResponse();
+
+                        if (continueResponse.hasAutoSubmitAction()) {
+                            new Thread(() -> {
+                                startAutoSubmitTimer(continueResponse.getAutoSubmitAction(), continueResponse, context);
+                            }).start();
+                        }
                         substituteValues(continueResponse, context);
                     }
 

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ContinueResponse {
+public class ContinueResponse implements Cloneable {
     public String getTitle() {
         return title;
     }
@@ -63,6 +63,49 @@ public class ContinueResponse {
             }
         }
         return formSubmitActions;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    public boolean hasAutoSubmitAction() {
+        for (Action a : getActions()) {
+            if (a.getType().equalsIgnoreCase(Action.SUBMIT_FORM)) {
+                if (a.getInputData() != null && a.getInputData().get(Action.AUTO_SUBMIT_INTERVAL) != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Action getAutoSubmitAction() {
+        for (Action a : getActions()) {
+            if (a.getType().equalsIgnoreCase(Action.SUBMIT_FORM)) {
+                if (a.getInputData() != null && a.getInputData().get(Action.AUTO_SUBMIT_INTERVAL) != null) {
+                    return a;
+                }
+            }
+        }
+        return null;
+    }
+
+    public int getAutoSubmitDelay() {
+        Action a = getAutoSubmitAction();
+        if (a != null) {
+            return (int) a.getInputData().get(Action.AUTO_SUBMIT_INTERVAL);
+        }
+        return 0;
+    }
+
+    public int getPollRetries() {
+        Action a = getAutoSubmitAction();
+        if (a != null) {
+            return (int) a.getInputData().get(Action.MAX_RETRIES);
+        }
+        return 0;
     }
 
     private String title;

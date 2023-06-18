@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 public class FormSubmitActionHandler implements DaVinciFlowActionHandler {
     private static final String ACTION_VALUE = "actionValue";
+    public static final String SUBMIT_FORM = "submitForm";
 
     @Override
     public void handle(ContinueResponse continueResponse, Context context, PingOneDaVinci pingOneDaVinci) throws PingOneDaVinciException {
@@ -27,7 +28,7 @@ public class FormSubmitActionHandler implements DaVinciFlowActionHandler {
                 }
             }
             for (Action a: continueResponse.getActions()) {
-                if (a.getType().equalsIgnoreCase(Action.SUBMIT_FORM)) {
+                if (a.getType().equalsIgnoreCase(SUBMIT_FORM)) {
                     parameters.put(ACTION_VALUE, a.getActionValue());
                 }
             }
