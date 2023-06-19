@@ -9,13 +9,10 @@ import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.NO_MAPPER_
 import static com.pingidentity.emeasa.davinci.PingOneDaVinciException.TOO_MANY_ACTIONS;
 
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResult;
@@ -23,7 +20,6 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.annotation.NonNull;
 
 import org.jose4j.jwt.JwtClaims;
@@ -35,8 +31,6 @@ import org.jose4j.jwt.consumer.JwtContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.google.android.gms.fido.Fido;
-import com.google.android.gms.fido.fido2.api.common.AuthenticatorErrorResponse;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler;
@@ -53,7 +47,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.entity.StringEntity;
@@ -80,7 +73,8 @@ public class PingOneDaVinci {
     private DaVinciFlowUI flowUI;
 
     private ActivityResultLauncher<IntentSenderRequest> resultLauncher;
-    private ActivityResultLauncher<String[]> permisionLauncher;
+    private ActivityResultLauncher<Intent> intentLauncher;
+    private ActivityResultLauncher<String[]> permissionLauncher;
     private Map<String, DaVinciValueMapper> mapperCallbacks = new HashMap<>();
 
     public NotificationObject getNotificationObject() {
@@ -91,11 +85,11 @@ public class PingOneDaVinci {
 
     private int pollRetries = -1;
 
-    public void setActivityResultHandler(ActivityResultHanlder activityResultHandler) {
+    public void setActivityResultHandler(ActivityResultHandler activityResultHandler) {
         this.activityResultHandler = activityResultHandler;
     }
 
-    private ActivityResultHanlder activityResultHandler;
+    private ActivityResultHandler activityResultHandler;
 
     public ComponentActivity getHostActivity() {
         return hostActivity;
@@ -133,13 +127,23 @@ public class PingOneDaVinci {
             @Override
             public void onActivityResult(ActivityResult result) {
                 if (activityResultHandler != null) {
-                    activityResultHandler.processActvitiyResult(result);
+                    activityResultHandler.processActivityResult(result);
                 }
 
             }
         });
 
-        permisionLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
+        intentLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if(activityResultHandler != null) {
+                    activityResultHandler.processActivityResult(result);
+                    activityResultHandler = null;
+                }
+            }
+        } );
+
+        permissionLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
             @Override
             public void onActivityResult(Map<String, Boolean> result) {
                 for (String permission : result.keySet()) {
@@ -182,7 +186,7 @@ public class PingOneDaVinci {
     }
 
     public void requestNotificationPermission() {
-        permisionLauncher.launch(new String[]{"android.permission.POST_NOTIFICATIONS"});
+        permissionLauncher.launch(new String[]{"android.permission.POST_NOTIFICATIONS"});
     }
 
     public void initialise(String apiKey) {
@@ -433,11 +437,14 @@ public class PingOneDaVinci {
         IntentSenderRequest req = new IntentSenderRequest.Builder(p).build();
         resultLauncher.launch(req);
     }
-
+    public void launchIntent(Intent i, ActivityResultHandler callbackHandler) {
+        this.activityResultHandler = callbackHandler;
+        intentLauncher.launch(i);
+    }
     public void requestMapperPermissions(String permission, DaVinciValueMapper mapperInstance) {
 
         mapperCallbacks.put(permission, mapperInstance);
-        permisionLauncher.launch(new String[]{permission});
+        permissionLauncher.launch(new String[]{permission});
     }
 
     public void startFlowPolicyFromIntent(Intent intent, String userID, Context context) {

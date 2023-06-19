@@ -22,7 +22,7 @@ import com.google.android.gms.fido.fido2.api.common.PublicKeyCredential;
 import com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialDescriptor;
 import com.google.android.gms.fido.fido2.api.common.PublicKeyCredentialRequestOptions;
 import com.google.android.gms.tasks.Task;
-import com.pingidentity.emeasa.davinci.ActivityResultHanlder;
+import com.pingidentity.emeasa.davinci.ActivityResultHandler;
 import com.pingidentity.emeasa.davinci.DaVinciFlowActionHandler;
 import com.pingidentity.emeasa.davinci.PingOneDaVinci;
 import com.pingidentity.emeasa.davinci.PingOneDaVinciException;
@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler, ActivityResultHanlder {
+public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler, ActivityResultHandler {
 
     private static final String ACTION_VALUE = "actionValue";
     private Fido2ApiClient fido2ApiClient;
@@ -177,7 +177,7 @@ public class FIDOAssertionActionHandler implements DaVinciFlowActionHandler, Act
         }
     }
     @Override
-    public void processActvitiyResult(ActivityResult result) {
+    public void processActivityResult(ActivityResult result) {
         handleAssertionResponse(result.getResultCode(),  result.getData());
     }
 }
