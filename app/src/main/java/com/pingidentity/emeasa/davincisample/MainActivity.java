@@ -71,9 +71,9 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
         ViewGroup layout = (ViewGroup) findViewById(R.id.davContainer);
         DaVinciForm form = new DaVinciForm(daVinci, layout, this);
 
-        form.setTitleContainerStyle(R.style.Theme_DaVinciSDKTestApp_TitleContainer);
+       form.setTitleContainerStyle(R.style.Theme_DaVinciSDKTestApp_TitleContainer);
         form.setFieldContainerStyle(R.style.Theme_DaVinciSDKTestApp_FieldContainer);
-        form.setButtonStyle(R.style.Theme_DaVinciSDKTestApp_Button);
+       form.setButtonStyle(R.style.Theme_DaVinciSDKTestApp_Button);
         form.setButtonContainerStyle(R.style.Theme_DaVinciSDKTestApp_ButtonContainer);
         form.setEditViewStyle(R.style.Theme_DaVinciSDKTestApp_EditText);
         form.setHeaderTextStyle(R.style.Theme_DaVinciSDKTestApp_HeaderText);

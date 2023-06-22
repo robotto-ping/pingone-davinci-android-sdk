@@ -36,12 +36,12 @@ public class DaVinciForm {
     private static int SPINNER_ID = 90311;
     private static int BUTTONS_ID = 90312;
     private PingOneDaVinci daVinci;
-    private int buttonStyle = 0;
-    private int editViewStyle = 0;
+    private int buttonStyle = android.R.style.Widget_Button;
+    private int editViewStyle = android.R.style.Widget_EditText;
 
 
-    private int headerTextStyle = 0;
-    private int textStyle = 0;
+    private int headerTextStyle = android.R.style.TextAppearance_DeviceDefault_Large;
+    private int textStyle = android.R.style.TextAppearance_DeviceDefault;
 
 
     private int titleContainerStyle = 0;
