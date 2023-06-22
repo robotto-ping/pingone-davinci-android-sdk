@@ -32,6 +32,9 @@ public class DaVinciForm {
     private JSONObject flowPayload = new JSONObject();
     private Map<String, Integer> inputFieldIdentifiers = new HashMap<>();
     private int fieldID = 1000;
+
+    private static int SPINNER_ID = 90311;
+    private static int BUTTONS_ID = 90312;
     private PingOneDaVinci daVinci;
     private int buttonStyle = 0;
     private int editViewStyle = 0;
@@ -117,13 +120,19 @@ public class DaVinciForm {
             }
             if (!continueResponse.getActions().isEmpty()) {
                 // finally the button actions
-                if (continueResponse.hasAutoSubmitAction()) {
                     LinearLayout spinnerLayout = new LinearLayout(activity, null, 0, spinnerContainerStyle);
+                    spinnerLayout.setId(SPINNER_ID);
                     ProgressBar spinner = new ProgressBar(activity, null, 0, spinnerStyle);
                     spinnerLayout.addView(spinner);
                     formLayout.addView(spinnerLayout);
+                if (continueResponse.hasAutoSubmitAction()) {
+                    spinnerLayout.setVisibility(View.VISIBLE);
+                } else {
+                    spinnerLayout.setVisibility(View.GONE);
                 }
+
                 LinearLayout buttonLayout = new LinearLayout(activity, null, 0, buttonContainerStyle);
+                buttonLayout.setId(BUTTONS_ID);
                 for (Action a : continueResponse.getFormSubmitActions()) {
                     if (!continueResponse.hasAutoSubmitAction() || !continueResponse.getAutoSubmitAction().equals(a)) {
                         Button button = new Button(activity, null, 0, buttonStyle);
@@ -141,6 +150,7 @@ public class DaVinciForm {
 
     public static void submitFlowContinueResponse(Map<String, Object> fieldValues, String actionValue, PingOneDaVinci pingOneDaVinci, Context context) {
         try {
+
             JSONObject flowPayload = new JSONObject();
             flowPayload.put("actionValue", actionValue);
             for (String key : fieldValues.keySet()) {
@@ -163,12 +173,16 @@ public class DaVinciForm {
         @Override
         public void onClick(View view) {
             try {
+                LinearLayout spinnerLayout = (LinearLayout) activity.findViewById(SPINNER_ID);
+               spinnerLayout.setVisibility(View.VISIBLE);
+                LinearLayout buttonsLayout = (LinearLayout) activity.findViewById(BUTTONS_ID);
+                buttonsLayout.setVisibility(View.GONE);
                 flowPayload.put("actionValue", this.actionValue);
                 for (String parameterName : inputFieldIdentifiers.keySet()) {
                     EditText e = (EditText) activity.findViewById(inputFieldIdentifiers.get(parameterName));
                     flowPayload.put(parameterName, e.getText());
                 }
-                formLayout.removeViews(0, formLayout.getChildCount());
+                //formLayout.removeViews(0, formLayout.getChildCount());
                 daVinci.continueFlow(flowPayload, activity);
             } catch (Exception e) {
                 e.printStackTrace();
