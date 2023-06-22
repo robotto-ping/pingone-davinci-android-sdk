@@ -44,7 +44,7 @@ public class DaVinciForm {
     private int textStyle = android.R.style.TextAppearance_DeviceDefault;
 
 
-    private int titleContainerStyle = 0;
+    private int titleContainerStyle =0;
     private int fieldContainerStyle = 0;
     private int buttonContainerStyle = 0;
 
@@ -78,6 +78,8 @@ public class DaVinciForm {
             if (!continueResponse.getFields().isEmpty()) {
                 boolean focused = false;
                 LinearLayout fieldLayout = new LinearLayout(activity, null, 0, fieldContainerStyle);
+                if (fieldContainerStyle == 0)
+                    fieldLayout.setOrientation(LinearLayout.VERTICAL);
                 for (Field f : continueResponse.getFields()) {
                     if (f.getType().equalsIgnoreCase(Field.TEXT)) {
                         // This is a text field - render a label
