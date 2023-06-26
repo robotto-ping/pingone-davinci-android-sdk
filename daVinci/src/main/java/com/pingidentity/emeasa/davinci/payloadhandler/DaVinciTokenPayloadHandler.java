@@ -23,6 +23,11 @@ public class DaVinciTokenPayloadHandler  implements DaVinciResponsePayloadHandle
                  flowResponse.setIdToken(response.getString("id_token"));
              if(response.has("success")) {
                  flowResponse.setSuccess(response.getBoolean("success"));
+
+             }
+             if(response.has("sessionToken")) {
+
+                 flowResponse.setData(new JSONObject().put("sessionToken", response.getString("sessionToken")));
              }
          }catch (Exception e) {
              throw new PingOneDaVinciException(e.getMessage());

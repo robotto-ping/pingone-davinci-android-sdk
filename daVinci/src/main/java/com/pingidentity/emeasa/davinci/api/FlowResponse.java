@@ -1,5 +1,10 @@
 package com.pingidentity.emeasa.davinci.api;
 
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.jwt.consumer.JwtConsumer;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
+import org.jose4j.jwt.consumer.JwtContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -60,4 +65,26 @@ public class FlowResponse {
     private String idToken;
     private boolean success;
     private Map<String, String> dataFields = new HashMap<>();
+
+    public UserSession getUserSession() {
+        String stVal = null;
+        if (this.hasDataField("sessionToken")) {
+            stVal = this.getDataFieldValue("sessionToken");
+        }
+        JwtConsumer firstPassJwtConsumer = new JwtConsumerBuilder()
+                .setSkipAllValidators()
+                .setDisableRequireSignature()
+                .setSkipSignatureVerification()
+                .build();
+        try {
+            JwtContext jwtContext = firstPassJwtConsumer.process(this.getIdToken());
+            String userID = jwtContext.getJwtClaims().getSubject();
+            UserSession us = new UserSession(userID,  jwtContext.getJwtClaims().getClaimsMap(), stVal);
+            return us;
+        } catch (InvalidJwtException | MalformedClaimException e) {
+            e.printStackTrace();
+        }
+        return null;
+
+    }
 }

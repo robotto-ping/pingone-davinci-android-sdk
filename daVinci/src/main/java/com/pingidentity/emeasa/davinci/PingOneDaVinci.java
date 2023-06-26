@@ -39,8 +39,10 @@ import com.pingidentity.emeasa.davinci.api.Action;
 import com.pingidentity.emeasa.davinci.api.ContinueResponse;
 import com.pingidentity.emeasa.davinci.api.Field;
 import com.pingidentity.emeasa.davinci.api.FlowResponse;
+import com.pingidentity.emeasa.davinci.api.UserSession;
 import com.pingidentity.emeasa.davinci.payloadhandler.DaVinciJSONResponsePayloadHandler;
 import com.pingidentity.pingidsdkv2.NotificationObject;
+import com.pingidentity.pingidsdkv2.communication.models.PingOneDataModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,6 +71,9 @@ public class PingOneDaVinci {
     private static final String JWKS_URL_PATTERN = "https://auth.pingone.%s/%s/davinci/.well-known/jwks.json";
 
     private static final String ISSUER_PATTERN = "https://auth.pingone.%s/%s/davinci";
+    private static final String SESSION_TOKEN = "sessionToken";
+    private static final String GLOBAL = "global";
+    private static final String POLICY_ID = "policyId";
 
     private DaVinciFlowUI flowUI;
 
@@ -82,6 +87,10 @@ public class PingOneDaVinci {
     }
 
     private NotificationObject notificationObject;
+
+
+    private UserSession userSession;
+    private String apiKey;
 
     private int pollRetries = -1;
 
@@ -136,12 +145,12 @@ public class PingOneDaVinci {
         intentLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
-                if(activityResultHandler != null) {
+                if (activityResultHandler != null) {
                     activityResultHandler.processActivityResult(result);
                     activityResultHandler = null;
                 }
             }
-        } );
+        });
 
         permissionLauncher = hostActivity.registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), new ActivityResultCallback<Map<String, Boolean>>() {
             @Override
@@ -193,6 +202,7 @@ public class PingOneDaVinci {
     public void initialise(String apiKey) {
         fetchFlowInitiationToken(apiKey);
     }
+
 
     public void initialiseWithToken(String flowInitiationToken) {
         this.flowInitiationToken = flowInitiationToken;
@@ -266,16 +276,35 @@ public class PingOneDaVinci {
         }
     }
 
+    public void startFlowPolicy(String policyID, JSONObject flowInputParameters, Context context,  UserSession session) {
+        if (session == null && this.userSession == null) {
+            startPolicy(policyID, flowInputParameters, context);
+        } else {
+            if (session != null)
+                this.userSession = session;
+            fetchFlowInitiationTokenForPolicy(policyID, this.userSession, flowInputParameters, context);
+        }
+    }
+
+
     public void startFlowPolicy(String policyID, JSONObject flowInputParameters, Context context) {
+        startFlowPolicy(policyID, flowInputParameters, context, null);
+    }
+
+    public void startFlowPolicy(String policyID, Context context) {
+        startFlowPolicy(policyID, null, context, null);
+    }
+
+    public void startFlowPolicy(String policyID, Context context, UserSession session) {
+        startFlowPolicy(policyID, null, context, session);
+    }
+
+    private void startPolicy(String policyID, JSONObject flowInputParameters, Context context) {
         String requestURL = String.format(POLICY_URL_PATTERN, DV_AUTH_URL_BASE, location, companyID, policyID);
         AsyncHttpClient client = new AsyncHttpClient();
         client.addHeader(AUTHORIZATION_HEADER_NAME, String.format(BEARER_TOKEN_HEADER_PATTERN, this.flowInitiationToken));
         StringEntity entity = new StringEntity(flowInputParameters == null ? "" : flowInputParameters.toString(), "UTF-8");
         client.post(context, requestURL, entity, "application/json", new DaVinciAPIResponseHandler(context));
-    }
-
-    public void startFlowPolicy(String policyID, Context context) {
-        startFlowPolicy(policyID, null, context);
     }
 
     public String getEnvironmentId() {
@@ -285,6 +314,7 @@ public class PingOneDaVinci {
 
     private void fetchFlowInitiationToken(String apiKey) {
         try {
+            this.apiKey = apiKey;
             String requestURL = String.format(TOKEN_URL_PATTERN, DV_API_URL_BASE, location, companyID);
             AsyncHttpClient client = new AsyncHttpClient();
             client.addHeader(API_KEY_HEADER_NAME, apiKey);
@@ -294,6 +324,49 @@ public class PingOneDaVinci {
                     try {
                         flowInitiationToken = response.getString(ACCESS_TOKEN);
                         flowUI.onDaVinciReady();
+                    } catch (Exception e) {
+                        flowUI.onDaVinciError(e);
+
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode,
+                                      cz.msebera.android.httpclient.Header[] headers,
+                                      java.lang.Throwable throwable,
+                                      org.json.JSONObject errorResponse) {
+                    flowUI.onDaVinciError(throwable);
+                }
+            });
+        } catch (Exception e) {
+            flowUI.onDaVinciError(e);
+        }
+    }
+
+
+    private void fetchFlowInitiationTokenForPolicy(String policyID, UserSession userSession, JSONObject flowInputParameters, Context context) {
+        try {
+            this.userSession = userSession;
+            String requestURL = String.format(TOKEN_URL_PATTERN, DV_API_URL_BASE, location, companyID);
+            AsyncHttpClient client = new AsyncHttpClient();
+            client.addHeader(API_KEY_HEADER_NAME, apiKey);
+            JSONObject tokenInputParameters = null;
+            if (userSession != null && userSession.getSessionTokenValue() != null) {
+                JSONObject global = new JSONObject();
+                global.put(SESSION_TOKEN, userSession.getSessionTokenValue());
+                tokenInputParameters = new JSONObject();
+                tokenInputParameters.put(GLOBAL, global);
+                tokenInputParameters.put(POLICY_ID, policyID);
+            }
+
+            StringEntity entity = new StringEntity(tokenInputParameters == null ? "" : tokenInputParameters.toString(), "UTF-8");
+
+            client.post(hostActivity, requestURL, entity, "application/json", new JsonHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                    try {
+                        flowInitiationToken = response.getString(ACCESS_TOKEN);
+                        startPolicy(policyID, flowInputParameters, context);
                     } catch (Exception e) {
                         flowUI.onDaVinciError(e);
 
@@ -438,10 +511,12 @@ public class PingOneDaVinci {
         IntentSenderRequest req = new IntentSenderRequest.Builder(p).build();
         resultLauncher.launch(req);
     }
+
     public void launchIntent(Intent i, ActivityResultHandler callbackHandler) {
         this.activityResultHandler = callbackHandler;
         intentLauncher.launch(i);
     }
+
     public void requestMapperPermissions(String permission, DaVinciValueMapper mapperInstance) {
 
         mapperCallbacks.put(permission, mapperInstance);
@@ -475,24 +550,24 @@ public class PingOneDaVinci {
 
     private void startAutoSubmitTimer(Action autoSubmitAction, ContinueResponse continueResponse, Context context) {
         try {
-            if (pollRetries == -1)  {
+            if (pollRetries == -1) {
                 pollRetries = continueResponse.getPollRetries();
             } else {
                 pollRetries--;
             }
 
-                ContinueResponse newContinueResponse = (ContinueResponse) continueResponse.clone();
-                newContinueResponse.setActions(Collections.singletonList(autoSubmitAction));
-                if (pollRetries == 0) {
-                    autoSubmitAction.setActionValue(Action.POLL_RETRIES_EXCEEDED);
-                }
+            ContinueResponse newContinueResponse = (ContinueResponse) continueResponse.clone();
             newContinueResponse.setActions(Collections.singletonList(autoSubmitAction));
-                int autoSubmitInterval = continueResponse.getAutoSubmitDelay();
-                try {
-                    Thread.sleep(autoSubmitInterval);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+            if (pollRetries == 0) {
+                autoSubmitAction.setActionValue(Action.POLL_RETRIES_EXCEEDED);
+            }
+            newContinueResponse.setActions(Collections.singletonList(autoSubmitAction));
+            int autoSubmitInterval = continueResponse.getAutoSubmitDelay();
+            try {
+                Thread.sleep(autoSubmitInterval);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
 
             ((Activity) context).runOnUiThread(() -> {
                 processFlowAction(newContinueResponse, context);
@@ -502,8 +577,13 @@ public class PingOneDaVinci {
         }
 
 
-
     }
+
+    public UserSession getUserSession() {
+        return userSession;
+    }
+
+
 
     private class DaVinciAPIResponseHandler extends JsonHttpResponseHandler {
 
@@ -524,7 +604,11 @@ public class PingOneDaVinci {
                     responseHandler.initialise(response);
                     if (responseHandler.isTerminalStep()) {
                         flowContext = null;
-                        flowUI.onFlowComplete(responseHandler.getFlowResponse());
+                        FlowResponse flowResponse = responseHandler.getFlowResponse();
+                        if (flowResponse.isSuccess() && flowResponse.getIdToken() != null) {
+                            userSession = flowResponse.getUserSession();
+                        }
+                        flowUI.onFlowComplete(flowResponse);
                     } else {
                         flowContext.setNextPayload(responseHandler.getNextPayload());
                         continueResponse = responseHandler.getContinueResponse();

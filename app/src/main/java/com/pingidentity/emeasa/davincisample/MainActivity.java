@@ -61,9 +61,9 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
         findViewById(R.id.tokenLabel).setVisibility(VISIBLE);
         String id = flowResponse.getIdToken();
         ( (TextView)findViewById(R.id.tokenLabel)).setText("Token:: " + id);
-        Intent i = new Intent(this, MainActivity.class);
-        i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        startActivity(i);
+       /* if (flowResponse.getUserSession() != null) {
+            daVinci.startFlowPolicy(DaVinciEnvironment.MAIN_POLICY_ID, this,flowResponse.getUserSession() );
+        } */
     }
 
     @Override

@@ -14,6 +14,7 @@ public class NextPayload {
         this.id = id;
         this.eventName = eventName;
         this.nextEvent = nextEvent;
+
     }
 
     public String getId() {
@@ -30,6 +31,7 @@ public class NextPayload {
 
     public void setEventName(String eventName) {
         this.eventName = eventName;
+
     }
 
     public JSONObject getNextEvent() {
