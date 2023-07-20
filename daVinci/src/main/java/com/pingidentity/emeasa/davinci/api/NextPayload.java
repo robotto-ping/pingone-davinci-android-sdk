@@ -56,6 +56,7 @@ public class NextPayload {
                 .put("eventName", getEventName())
                 .put("nextEvent", getNextEvent())
                 .put("parameters", parameters);
+
         return  result;
 
     }

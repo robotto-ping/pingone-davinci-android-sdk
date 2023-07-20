@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements DaVinciFlowUI {
             String token = task.getResult();
             Log.d("Foo","FCM Token = " + task.getResult());
         });
-
+        PingOneDaVinci.startProfiling(this, DaVinciEnvironment.COMPANY_ID);
         setContentView(R.layout.activity_main);
         daVinci = new PingOneDaVinci(this, DaVinciEnvironment.COMPANY_ID, DaVinciEnvironment.REGION, this) ;
         daVinci.requestNotificationPermission();

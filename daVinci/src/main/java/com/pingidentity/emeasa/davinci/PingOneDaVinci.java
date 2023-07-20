@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResult;
@@ -43,6 +44,9 @@ import com.pingidentity.emeasa.davinci.api.UserSession;
 import com.pingidentity.emeasa.davinci.payloadhandler.DaVinciJSONResponsePayloadHandler;
 import com.pingidentity.pingidsdkv2.NotificationObject;
 import com.pingidentity.pingidsdkv2.communication.models.PingOneDataModel;
+import com.pingidentity.signalssdk.sdk.InitCallback;
+import com.pingidentity.signalssdk.sdk.POInitParams;
+import com.pingidentity.signalssdk.sdk.PingOneSignals;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -184,7 +188,7 @@ public class PingOneDaVinci {
         this.flowActionHandlers.put("submitForm", "com.pingidentity.emeasa.davinci.actionhandler.FormSubmitActionHandler");
         this.flowActionHandlers.put("platformAttestation", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAttestationActionHandler");
         this.flowActionHandlers.put("platformAssertion", "com.pingidentity.emeasa.davinci.actionhandler.FIDOAssertionActionHandler");
-        this.flowActionHandlers.put("riskSignals", "com.pingidentity.emeasa.davinci.actionhandler.PingOneRiskSignalsActionHandler");
+        this.flowActionHandlers.put("riskSignals", "com.pingidentity.emeasa.davinci.actionhandler.PingOneProtectSignalsActionHandler");
         this.flowActionHandlers.put(PingOneMFAActionHandler.GET_PAYLOAD_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
         this.flowActionHandlers.put(PingOneMFAActionHandler.PAIR_DEVICE_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
         this.flowActionHandlers.put(PingOneMFAActionHandler.GET_INFO_ACTION, "com.pingidentity.emeasa.davinci.actionhandler.PingOneMFAActionHandler");
@@ -584,6 +588,22 @@ public class PingOneDaVinci {
     }
 
 
+    public static void startProfiling(Context context, String environmentID){
+        PingOneSignals.setInitCallback(new InitCallback() {
+            @Override
+            public void onError(@NonNull String message, @NonNull String code, @NonNull String id) {
+                Log.i("PingOneSignals", "onError " + message + " code: " + code + " id: " + id);
+            }
+
+            @Override
+            public void onInitialized() {
+                Log.i("PingOneSignals ", "SDK Initialized");
+            }
+        });
+        POInitParams initParams = new POInitParams();
+        initParams.setEnvId(environmentID);
+        PingOneSignals.init(context, initParams);
+    }
 
     private class DaVinciAPIResponseHandler extends JsonHttpResponseHandler {
 
